@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>体験レッスン申込</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#FBF6EC;
+      --card:#FFFFFF;
+      --orange:#FD9E1D;
+      --orange-dark:#E8890A;
+      --green:#02B900;
+      --green-dark:#029B00;
+      --text:#4A3F30;
+      --text-soft:#8A7C68;
+      --border:#EFE3CF;
+      --radius-lg:22px;
+      --radius-md:14px;
+    }
+    * { box-sizing:border-box; }
+    body {
+      font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN",sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(253,158,29,0.10) 0%, rgba(253,158,29,0) 42%),
+        radial-gradient(circle at 96% 18%, rgba(2,185,0,0.08) 0%, rgba(2,185,0,0) 40%),
+        var(--cream);
+      margin:0;
+      padding:28px 16px 72px;
+      color:var(--text);
+      line-height:1.6;
+    }
+    #app { max-width:480px; margin:0 auto; }
+
+    .brand { text-align:center; margin-bottom:28px; }
+    .brand-badge {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:56px; height:56px; border-radius:50%;
+      background:linear-gradient(135deg, var(--orange), #ffbf6b);
+      box-shadow:0 6px 16px rgba(253,158,29,0.35);
+      margin-bottom:12px;
+    }
+    .brand-badge svg { width:28px; height:28px; }
+    h1 {
+      font-size:21px; font-weight:700; margin:0 0 6px;
+      letter-spacing:0.02em;
+    }
+    .brand-sub {
+      font-size:12.5px; color:var(--text-soft); letter-spacing:0.08em; margin:0;
+    }
+
+    .card {
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      padding:22px 20px;
+      margin-bottom:18px;
+      box-shadow:0 4px 18px rgba(180,140,80,0.07);
+    }
+    .card-title {
+      display:flex; align-items:center; gap:8px;
+      font-size:13px; font-weight:700; color:var(--orange-dark);
+      letter-spacing:0.06em; margin:0 0 18px;
+    }
+    .card-title::before {
+      content:""; width:7px; height:7px; border-radius:50%;
+      background:var(--orange); flex:none;
+    }
+
+    .field { margin-bottom:16px; }
+    .field:last-child { margin-bottom:0; }
+    label { display:block; font-weight:700; margin-bottom:7px; font-size:13.5px; color:var(--text); }
+
+    select, input[type=text], input[type=email], input[type=tel], input[type=date], textarea {
+      width:100%; box-sizing:border-box; padding:11px 12px;
+      border:1.5px solid var(--border); border-radius:var(--radius-md);
+      font-size:15px; font-family:inherit; color:var(--text);
+      background:#FFFDF9;
+      transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    select:focus, input:focus, textarea:focus {
+      outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(253,158,29,0.15);
+    }
+    textarea { resize:vertical; }
+
+    .radio-group { display:flex; gap:10px; }
+    .radio-group label {
+      flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+      font-weight:500; margin:0; padding:10px 12px;
+      border:1.5px solid var(--border); border-radius:var(--radius-md);
+      background:#FFFDF9; cursor:pointer;
+    }
+    .radio-group input[type=radio] { accent-color:var(--orange); width:16px; height:16px; margin:0; }
+
+    button[type=submit] {
+      width:100%; background:linear-gradient(135deg, var(--green), var(--green-dark));
+      color:#fff; border:none; padding:16px 24px; border-radius:28px;
+      font-size:16.5px; font-weight:700; font-family:inherit;
+      letter-spacing:0.03em; cursor:pointer;
+      box-shadow:0 8px 20px rgba(2,185,0,0.28);
+      transition:transform .1s ease, box-shadow .1s ease;
+    }
+    button[type=submit]:active { transform:translateY(1px); box-shadow:0 4px 12px rgba(2,185,0,0.28); }
+
+    #step-loading { text-align:center; padding:64px 0; color:var(--text-soft); font-size:14px; }
+    #step-loading .spinner {
+      width:34px; height:34px; margin:0 auto 16px;
+      border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .note { font-size:12px; color:var(--text-soft); margin-top:6px; line-height:1.5; }
+
+    #step-done, #step-enroll-done { text-align:center; padding:36px 20px; }
+    .done-badge {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:64px; height:64px; border-radius:50%;
+      background:rgba(2,185,0,0.12); margin-bottom:18px;
+    }
+    .done-badge svg { width:32px; height:32px; }
+    #step-done p, #step-enroll-done p { font-size:15px; margin:0 0 6px; }
+    .done-sub { font-size:13px; color:var(--text-soft); }
+
+    .kind-btn{flex:1;padding:20px 12px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--card);font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;}
+    .kind-btn:active{background:var(--cream);}
+    .pay-options{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+    .pay-options label{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-weight:500;}
+    .pay-options input[type=radio]{accent-color:var(--orange);width:16px;height:16px;margin:0;}
+
+    /* ---- はじめての方向けガイド ---- */
+    #guide-intro{margin-top:4px;}
+    .gi-hello{text-align:center;font-size:13px;color:var(--text-soft);margin:-6px 0 16px;letter-spacing:0.04em;}
+    .gi-lead{font-size:14.5px;color:var(--text);margin:0;line-height:1.9;}
+    .gi-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;}
+    .gi-steps li{display:flex;gap:12px;align-items:flex-start;}
+    .gi-num{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--orange),var(--orange-dark));box-shadow:0 4px 10px rgba(253,158,29,0.28);}
+    .gi-green .gi-num{background:linear-gradient(135deg,var(--green),var(--green-dark));box-shadow:0 4px 10px rgba(2,185,0,0.25);}
+    .gi-green .card-title{color:var(--green-dark);}
+    .gi-green .card-title::before{background:var(--green);}
+    .gi-steps b{display:block;font-size:14.5px;margin-bottom:2px;}
+    .gi-steps p{margin:0;font-size:13px;color:var(--text-soft);line-height:1.7;}
+    .gi-pay{display:flex;flex-direction:column;gap:10px;}
+    .gi-pay > div{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#FFFDF9;}
+    .gi-ico{flex:none;width:34px;height:34px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:17px;}
+    .gi-pay b{display:block;font-size:14px;}
+    .gi-pay p{margin:0;font-size:12.5px;color:var(--text-soft);line-height:1.6;}
+    .gi-note{margin-top:14px;padding:12px 14px;border-radius:var(--radius-md);background:rgba(2,185,0,0.07);font-size:12.5px;color:var(--text);line-height:1.7;}
+    .gi-faq{margin:0;}
+    .gi-faq dt{font-weight:700;font-size:14px;margin-top:14px;}
+    .gi-faq dt:first-child{margin-top:0;}
+    .gi-faq dd{margin:4px 0 0;font-size:13px;color:var(--text-soft);line-height:1.7;}
+    .gi-cta{text-align:center;padding:4px 0 8px;}
+    .gi-cta-btn{width:100%;background:linear-gradient(135deg,var(--orange),var(--orange-dark));color:#fff;border:none;padding:16px 24px;border-radius:28px;font-size:16.5px;font-weight:700;font-family:inherit;letter-spacing:0.03em;cursor:pointer;box-shadow:0 8px 20px rgba(253,158,29,0.3);}
+    .gi-cta-btn:active{transform:translateY(1px);}
+    .gi-cta-link{display:inline-block;margin-top:14px;font-size:13px;color:var(--text-soft);text-decoration:underline;background:none;border:none;font-family:inherit;cursor:pointer;}
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div class="brand">
+    <div class="brand-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z" fill="#fff"/>
+      </svg>
+    </div>
+    <h1>体験レッスン申込</h1>
+    <p class="brand-sub">TRIAL LESSON APPLICATION</p>
+  </div>
+
+  <div id="step-loading">
+    <div class="spinner"></div>
+    読み込み中…<br id="liff-br"><small id="liff-debug" style="color:#f00; display:block;margin-top:8px;"></small>
+  </div>
+
+  <!-- ===== 種別選択 ===== -->
+  <div id="kind-select" class="card" style="display:none">
+    <p class="card-title">お申込み内容を選択してください</p>
+    <div style="display:flex;gap:12px;margin-top:10px;">
+      <button type="button" id="btn-trial" class="kind-btn">体験レッスン申込</button>
+      <button type="button" id="btn-enroll" class="kind-btn">入会申込</button>
+    </div>
+  </div>
+
+  <!-- ===== はじめての方向けガイド ===== -->
+  <div id="guide-intro" style="display:none">
+    <p class="gi-hello">はじめての方は、まずこちらをどうぞ</p>
+
+    <div class="card">
+      <p class="card-title">はじめての方へ</p>
+      <p class="gi-lead">「うちの子に合うかな」「手続きはむずかしくないかな」。はじめての習い事は、少しドキドキしますよね。ここでは、体験から入会、お月謝のお支払いまでの流れをやさしくご紹介します。読み終わるころには、次にすることがはっきりしますよ。</p>
+    </div>
+
+    <div class="card">
+      <p class="card-title">体験レッスンまでの流れ</p>
+      <ul class="gi-steps">
+        <li><span class="gi-num">1</span><div><b>LINEから申し込む</b><p>上の「体験レッスン申込」ボタンから、お名前と希望の教室を入力するだけ。1分ほどで完了します。</p></div></li>
+        <li><span class="gi-num">2</span><div><b>スタッフからご連絡</b><p>日程や持ち物などを、担当スタッフがLINEでご案内します。気になることは何でも聞いてください。</p></div></li>
+        <li><span class="gi-num">3</span><div><b>体験レッスンへ</b><p>お子さまと一緒に、実際のクラスの雰囲気を楽しんでください。入会するかどうかは、そのあとゆっくり決めていただいて大丈夫です。</p></div></li>
+      </ul>
+    </div>
+
+    <div class="card gi-green">
+      <p class="card-title">気に入ったら、入会のお手続き</p>
+      <ul class="gi-steps">
+        <li><span class="gi-num">4</span><div><b>入会フォームに入力</b><p>保護者さまとお子さまの情報、緊急連絡先を入力します。体験のときと同じくらいかんたんです。</p></div></li>
+        <li><span class="gi-num">5</span><div><b>お支払い方法を選ぶ</b><p>クレジットカード・コンビニ払い・銀行振込から、ご都合の良い方法をお選びください。</p></div></li>
+        <li><span class="gi-num">6</span><div><b>オンラインで決済して入会完了</b><p>お手続きが確認でき次第、スタッフからLINEでご連絡します。書類の郵送や来店は不要です。</p></div></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <p class="card-title">お支払い方法</p>
+      <div class="gi-pay">
+        <div><span class="gi-ico">💳</span><div><b>クレジットカード</b><p>一度ご登録いただくと、毎月自動でお支払いが完了します。いちばん手間がかかりません。</p></div></div>
+        <div><span class="gi-ico">🏪</span><div><b>コンビニ払い</b><p>毎月お支払い用のご案内がメールで届きます。お近くのコンビニでお支払いいただけます。</p></div></div>
+        <div><span class="gi-ico">🏦</span><div><b>銀行振込</b><p>毎月お振込先をご案内します。スタッフが入金を毎日確認していますのでご安心ください。</p></div></div>
+      </div>
+      <div class="gi-note">🔒 決済にはStripe社の安全なオンライン決済システムを使用しています。カード番号などの大切な情報を、スタッフが目にすることはありません。</div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">よくあるご質問</p>
+      <dl class="gi-faq">
+        <dt>体験だけで終わっても大丈夫？</dt>
+        <dd>もちろんです。体験のお申し込みで入会の義務が生まれることはありません。</dd>
+        <dt>金額はどこで確認できますか？</dt>
+        <dd>入会金やお月謝は教室によって異なります。各教室のご案内と、体験時のスタッフからの説明でご確認いただけます。</dd>
+        <dt>お支払い方法はあとから変えられますか？</dt>
+        <dd>LINEでスタッフにご相談ください。ご家庭の状況に合わせて一緒に考えます。</dd>
+      </dl>
+    </div>
+
+    <div class="gi-cta">
+      <button type="button" class="gi-cta-btn" id="gi-go-trial">体験レッスンを申し込む</button>
+      <br>
+      <button type="button" class="gi-cta-link" id="gi-go-enroll">すでに体験済みの方は、入会申込へ</button>
+    </div>
+  </div>
+
+  <!-- ===== 体験フォーム ===== -->
+  <form id="trial-form" style="display:none">
+
+    <div class="card">
+      <p class="card-title">ご連絡先</p>
+      <div class="field">
+        <label for="email">メールアドレス *</label>
+        <input type="email" id="email" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">体験希望内容</p>
+      <div class="field">
+        <label for="program">希望プログラム *</label>
+        <select id="program" required>
+          <option value="">選択してください</option>
+          <option value="JUMP UP">ジャンプアップ教室＜運動・ダンス＞</option>
+          <option value="KSCA">KSCA＜クスカ＞</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="classId">希望クラス *</label>
+        <select id="classId" required>
+          <option value="">まず希望プログラムを選んでください</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="date">体験希望日 *</label>
+        <select id="date" required>
+          <option value="">まずクラスを選んでください</option>
+        </select>
+        <div class="note">クラスの定員に空きがある直近の日程のみ表示されます</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">お子様について</p>
+      <div class="field">
+        <label for="childName">お子様のお名前 *</label>
+        <input type="text" id="childName" required>
+      </div>
+      <div class="field">
+        <label for="childKana">ふりがな *</label>
+        <input type="text" id="childKana" required>
+      </div>
+
+      <div class="field">
+        <label>性別 *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="gender" value="男" required> 男</label>
+          <label><input type="radio" name="gender" value="女"> 女</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="grade">学年 *</label>
+        <select id="grade" required>
+          <option value="">選択</option><option>2歳児</option><option>年少</option><option>年中</option><option>年長</option>
+          <option>小1</option><option>小2</option><option>小3</option><option>小4</option>
+          <option>小5</option><option>小6</option><option>中学生以上</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">その他（任意）</p>
+      <div class="field">
+        <label for="referrer">ご紹介者様のお名前（任意）</label>
+        <input type="text" id="referrer">
+      </div>
+
+      <div class="field">
+        <label for="note">体験の際に指導者が留意する点（任意）</label>
+        <textarea id="note" rows="3"></textarea>
+      </div>
+    </div>
+
+    <button type="submit">送信する</button>
+  </form>
+
+  <div id="step-done" style="display:none">
+    <div class="done-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 13L9.5 17.5L19 7" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p>お申込みありがとうございました。</p>
+    <p class="done-sub" id="doneClass"></p>
+    <p class="done-sub">担当より改めてご連絡いたします。</p>
+  </div>
+
+  <!-- ===== 入会フォーム ===== -->
+  <form id="enroll-form" style="display:none">
+
+    <div class="card">
+      <p class="card-title">保護者様のご連絡先</p>
+      <div class="field">
+        <label for="e-parentName">保護者様のお名前 *</label>
+        <input type="text" id="e-parentName" required>
+      </div>
+      <div class="field">
+        <label for="e-parentTel">電話番号 *</label>
+        <input type="tel" id="e-parentTel" required>
+      </div>
+      <div class="field">
+        <label for="e-email">メールアドレス *</label>
+        <input type="email" id="e-email" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">入会希望クラス</p>
+      <div class="field">
+        <label for="e-program">希望プログラム *</label>
+        <select id="e-program" required>
+          <option value="">選択してください</option>
+          <option value="JUMP UP">ジャンプアップ教室＜運動・ダンス＞</option>
+          <option value="KSCA">KSCA＜クスカ＞</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="e-classId">希望クラス *</label>
+        <select id="e-classId" required>
+          <option value="">まず希望プログラムを選んでください</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="e-startDate">入会希望日 *</label>
+        <input type="date" id="e-startDate" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">お子様について</p>
+      <div class="field">
+        <label for="e-childName">お子様のお名前 *</label>
+        <input type="text" id="e-childName" required>
+      </div>
+      <div class="field">
+        <label for="e-childKana">ふりがな *</label>
+        <input type="text" id="e-childKana" required>
+      </div>
+      <div class="field">
+        <label>性別 *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="e-gender" value="男" required> 男</label>
+          <label><input type="radio" name="e-gender" value="女"> 女</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="e-grade">学年 *</label>
+        <select id="e-grade" required>
+          <option value="">選択</option><option>2歳児</option><option>年少</option><option>年中</option><option>年長</option>
+          <option>小1</option><option>小2</option><option>小3</option><option>小4</option>
+          <option>小5</option><option>小6</option><option>中学生以上</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="e-birthday">生年月日 *</label>
+        <input type="date" id="e-birthday" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">緊急連絡先1</p>
+      <div class="field">
+        <label for="e-emg1Name">お名前 *</label>
+        <input type="text" id="e-emg1Name" required>
+      </div>
+      <div class="field">
+        <label for="e-emg1Rel">続柄 *</label>
+        <input type="text" id="e-emg1Rel" placeholder="例：祖母" required>
+      </div>
+      <div class="field">
+        <label for="e-emg1Tel">電話番号 *</label>
+        <input type="tel" id="e-emg1Tel" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">緊急連絡先2</p>
+      <div class="field">
+        <label for="e-emg2Name">お名前 *</label>
+        <input type="text" id="e-emg2Name" required>
+      </div>
+      <div class="field">
+        <label for="e-emg2Rel">続柄 *</label>
+        <input type="text" id="e-emg2Rel" placeholder="例：祖父" required>
+      </div>
+      <div class="field">
+        <label for="e-emg2Tel">電話番号 *</label>
+        <input type="tel" id="e-emg2Tel" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">お支払い方法（月謝）</p>
+      <div class="pay-options">
+        <label><input type="radio" name="e-payMethod" value="card" required> クレジットカード（自動引き落とし）</label>
+        <label><input type="radio" name="e-payMethod" value="konbini"> コンビニ払い（毎月請求）</label>
+        <label><input type="radio" name="e-payMethod" value="bank_transfer"> 銀行振込（毎月請求）</label>
+      </div>
+      <div class="note">入会金・年度更新料はこの後のお支払い画面でカード決済していただきます。月謝のお支払い方法は上記からお選びください。</div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label><input type="checkbox" id="e-agree" required> 会員規約に同意します *</label>
+      </div>
+    </div>
+
+    <button type="submit">入会手続き・お支払いへ進む</button>
+  </form>
+
+  <div id="step-enroll-done" style="display:none">
+    <div class="done-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 13L9.5 17.5L19 7" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p>お申込みを受け付けました。</p>
+    <p class="done-sub" id="enrollDoneMsg">お支払い手続きへ進みます…</p>
+  </div>
+
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script>
+/* =========================================================
+ * Apps Script バックエンドとの通信（GitHub Pages 用）
+ * google.script.run と同じ書き方で呼べる薄いシム
+ * ========================================================= */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxw3QIzqUsoYhlh7bp25SpKwWY6u5TpuwyheGiPZ7Cxi_IM_QyyZDcqwA4xiyUPN9uo/exec';
+
+function gasCall(fn, args) {
+  args = args || [];
+  var bust = '&_=' + Date.now();
+  if (fn === 'getClasses') {
+    return fetch(GAS_URL + '?action=classes' + bust).then(function(r){ return r.json(); });
+  }
+  if (fn === 'getAvailableDates') {
+    return fetch(GAS_URL + '?action=dates&classId=' + encodeURIComponent(args[0] || '') + bust).then(function(r){ return r.json(); });
+  }
+  if (fn === 'getLiffId') {
+    return fetch(GAS_URL + '?action=liffId' + bust).then(function(r){ return r.json(); }).then(function(o){ return (o && o.liffId) || ''; });
+  }
+  if (fn === 'submitTrial' || fn === 'submitEnrollment') {
+    return fetch(GAS_URL + '?action=' + fn, { method:'POST', body: JSON.stringify(args[0] || {}) })
+      .then(function(r){ return r.json(); })
+      .then(function(o){
+        if (o && o.ok === false && o.error) throw new Error(o.error);
+        return o;
+      });
+  }
+  return Promise.reject(new Error('unknown function: ' + fn));
+}
+
+window.google = { script: { run: (function(){
+  var names = ['getClasses','getAvailableDates','submitTrial','submitEnrollment','getLiffId'];
+  function make(onOk, onNg){
+    var o = {};
+    o.withSuccessHandler = function(cb){ return make(cb, onNg); };
+    o.withFailureHandler = function(cb){ return make(onOk, cb); };
+    names.forEach(function(name){
+      o[name] = function(){
+        var args = Array.prototype.slice.call(arguments);
+        gasCall(name, args).then(function(res){ if (onOk) onOk(res); })
+          .catch(function(err){ if (onNg) onNg(err); else console.error(err); });
+      };
+    });
+    return o;
+  }
+  return make(null, null);
+})() } };
+</script>
+
+<script>
+let LIFF_ID = '';
+let lineProfile = null;
+let allClasses = [];
+
+async function initLiff() {
+  try { LIFF_ID = await gasCall('getLiffId', []); } catch (e) { LIFF_ID = ''; }
+  if (!LIFF_ID) { onReady(); return; }
+  var dbg = document.getElementById('liff-debug');
+  function log(msg) { if (dbg) { dbg.textContent += msg + ' / '; } }
+  var forced = false;
+  var timer = setTimeout(function() { forced = true; log('タイムアウト8秒経過のため強制表示'); onReady(); }, 8000);
+  try {
+    log('liff.init開始');
+    await liff.init({ liffId: LIFF_ID });
+    log('liff.init完了');
+    if (!liff.isLoggedIn()) {
+      log('未ログインのためliff.login実行');
+      liff.login();
+      return;
+    }
+    log('ログイン済み');
+    lineProfile = await liff.getProfile();
+    log('プロフィール取得OK:' + (lineProfile && lineProfile.displayName));
+  } catch (err) {
+    console.error('LIFF init failed', err);
+    log('エラー:' + (err && err.message ? err.message : String(err)));
+  }
+  if (!forced) { clearTimeout(timer); onReady(); }
+}
+
+function onReady() {
+  document.getElementById('step-loading').style.display = 'none';
+  document.getElementById('trial-form').style.display = 'block';
+  google.script.run.withSuccessHandler(function(classes) {
+    allClasses = classes || [];
+  }).getClasses();
+}
+
+document.getElementById('program').addEventListener('change', function() {
+  const select = document.getElementById('classId');
+  select.innerHTML = '';
+  const filtered = allClasses.filter(c => c.program === this.value);
+  if (filtered.length === 0) {
+    select.innerHTML = '<option value="">該当クラスがありません</option>';
+    return;
+  }
+  select.innerHTML = '<option value="">選択してください</option>';
+  filtered.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = '【' + c.base + '】' + c.name + ' (' + c.weekday + ' ' + c.start + (c.end ? '～'+c.end : '') + ') ';
+    select.appendChild(opt);
+  });
+});
+
+document.getElementById('classId').addEventListener('change', function() {
+  const dateSelect = document.getElementById('date');
+  if (!this.value) { dateSelect.innerHTML = '<option value="">まずクラスを選んでください</option>';
+    return; }
+  dateSelect.innerHTML = '<option value="">読み込み中…</option>';
+  google.script.run.withSuccessHandler(function(dates) {
+    if (!dates || dates.length === 0) {
+      dateSelect.innerHTML = '<option value="">直近の空きがありません。事務局までお問い合わせください</option>';
+      return;
+    }
+    dateSelect.innerHTML = '<option value="">選択してください</option>';
+    dates.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d;
+      dateSelect.appendChild(opt);
+    });
+  }).getAvailableDates(this.value);
+});
+
+document.getElementById('trial-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const payload = {
+    email: document.getElementById('email').value,
+    program: document.getElementById('program').value,
+    classId: document.getElementById('classId').value,
+    date: document.getElementById('date').value,
+    childName: document.getElementById('childName').value,
+    childKana: document.getElementById('childKana').value,
+    gender: (document.querySelector('input[name=gender]:checked') || {}).value || '',
+    grade: document.getElementById('grade').value,
+    referrer: document.getElementById('referrer').value,
+    note: document.getElementById('note').value,
+    lineUserId: lineProfile ? lineProfile.userId : '',
+    lineName: lineProfile ? lineProfile.displayName : ''
+  };
+  const classSelect = document.getElementById('classId');
+  const classOpt = classSelect.options[classSelect.selectedIndex];
+  const classLabel = classOpt ? classOpt.textContent.trim() : '';
+  google.script.run.withSuccessHandler(function() {
+    document.getElementById('trial-form').style.display = 'none';
+    document.getElementById('doneClass').textContent = classLabel ? ('ご予約クラス：' + classLabel) : '';
+    document.getElementById('step-done').style.display = 'block';
+  }).withFailureHandler(function(err){
+    alert('送信に失敗しました。お手数ですが事務局までご連絡ください（' + (err && err.message ? err.message : err) + '）');
+  }).submitTrial(payload);
+});
+
+document.addEventListener('DOMContentLoaded', initLiff);
+</script>
+
+<script>
+(function(){
+  function showOnly(id){
+    ['kind-select','trial-form','enroll-form','step-enroll-done'].forEach(function(x){
+      var el = document.getElementById(x);
+      if (el) el.style.setProperty('display', x===id ? 'block' : 'none', 'important');
+    });
+  }
+  function waitForReady(){
+    var loading = document.getElementById('step-loading');
+    if (loading && loading.style.display === 'none') {
+      showOnly('kind-select');
+    } else {
+      setTimeout(waitForReady, 150);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    waitForReady();
+    document.getElementById('btn-trial').addEventListener('click', function(){ showOnly('trial-form'); });
+    document.getElementById('btn-enroll').addEventListener('click', function(){ showOnly('enroll-form'); loadEnrollClasses(); });
+  });
+
+  var enrollAllClasses = [];
+  function loadEnrollClasses(){
+    google.script.run.withSuccessHandler(function(classes){
+      enrollAllClasses = classes || [];
+    }).getClasses();
+  }
+  document.getElementById('e-program').addEventListener('change', function(){
+    var select = document.getElementById('e-classId');
+    select.innerHTML = '';
+    var filtered = enrollAllClasses.filter(function(c){ return c.program === this.value; }, this);
+    if (filtered.length === 0) {
+      select.innerHTML = '<option value="">該当クラスがありません</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">選択してください</option>';
+    filtered.forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
+      select.appendChild(opt);
+    });
+  });
+
+  document.getElementById('enroll-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var lp = null;
+    function afterProfile(){
+      var classSelect = document.getElementById('e-classId');
+      var classOpt = classSelect.options[classSelect.selectedIndex];
+      var classLabel = classOpt ? classOpt.textContent.trim() : '';
+      var payload = {
+        parentName: document.getElementById('e-parentName').value,
+        parentTel: document.getElementById('e-parentTel').value,
+        email: document.getElementById('e-email').value,
+        program: document.getElementById('e-program').value,
+        classId: document.getElementById('e-classId').value,
+        classLabel: classLabel,
+        startDate: document.getElementById('e-startDate').value,
+        childName: document.getElementById('e-childName').value,
+        childKana: document.getElementById('e-childKana').value,
+        gender: (document.querySelector('input[name=e-gender]:checked') || {}).value || '',
+        grade: document.getElementById('e-grade').value,
+        birthday: document.getElementById('e-birthday').value,
+        emg1Name: document.getElementById('e-emg1Name').value,
+        emg1Rel: document.getElementById('e-emg1Rel').value,
+        emg1Tel: document.getElementById('e-emg1Tel').value,
+        emg2Name: document.getElementById('e-emg2Name').value,
+        emg2Rel: document.getElementById('e-emg2Rel').value,
+        emg2Tel: document.getElementById('e-emg2Tel').value,
+        payMethod: (document.querySelector('input[name=e-payMethod]:checked') || {}).value || '',
+        lineUserId: lp ? lp.userId : '',
+        lineName: lp ? lp.displayName : ''
+      };
+      document.getElementById('enroll-form').style.setProperty('display','none','important');
+      document.getElementById('step-enroll-done').style.setProperty('display','block','important');
+      google.script.run.withSuccessHandler(function(result){
+        if (result && result.checkoutUrl) {
+          document.getElementById('enrollDoneMsg').textContent = 'お支払い画面へ移動します…';
+          top.location.href = result.checkoutUrl;
+        } else {
+          document.getElementById('enrollDoneMsg').textContent = '受付が完了しました。担当より改めてご連絡いたします。';
+        }
+      }).withFailureHandler(function(err){
+        document.getElementById('enrollDoneMsg').textContent = 'エラーが発生しました。お手数ですが事務局までご連絡ください（' + (err && err.message ? err.message : err) + '）';
+      }).submitEnrollment(payload);
+    }
+    if (window.liff && liff.isLoggedIn && liff.isLoggedIn()) {
+      liff.getProfile().then(function(p){ lp = p; afterProfile(); }).catch(function(){ afterProfile(); });
+    } else {
+      afterProfile();
+    }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  function init(){
+    var g = document.getElementById('guide-intro');
+    var k = document.getElementById('kind-select');
+    if (!g || !k) return;
+    function sync(){ g.style.display = (k.style.display === 'none') ? 'none' : 'block'; }
+    sync();
+    new MutationObserver(sync).observe(k, { attributes:true, attributeFilter:['style'] });
+    document.getElementById('gi-go-trial').addEventListener('click', function(){
+      document.getElementById('btn-trial').click();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    });
+    document.getElementById('gi-go-enroll').addEventListener('click', function(){
+      document.getElementById('btn-enroll').click();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+</body>
+</html>
