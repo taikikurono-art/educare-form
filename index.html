@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>体験レッスン申込</title>
+  <title>体験・入会のお申込み | educare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
@@ -170,8 +170,8 @@
         <path d="M12 3L14.5 9.5L21 12L14.5 14.5L12 21L9.5 14.5L3 12L9.5 9.5L12 3Z" fill="#fff"/>
       </svg>
     </div>
-    <h1>体験レッスン申込</h1>
-    <p class="brand-sub">TRIAL LESSON APPLICATION</p>
+    <h1>体験・入会のお申込み</h1>
+    <p class="brand-sub">TRIAL &amp; ENROLLMENT</p>
   </div>
 
   <div id="step-loading">
@@ -727,6 +727,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         if (result && result.checkoutUrl) {
           document.getElementById('enrollDoneMsg').textContent = 'お支払い画面へ移動します…';
           top.location.href = result.checkoutUrl;
+        } else if (result && result.checkoutError) {
+          document.getElementById('enrollDoneMsg').textContent = 'お申込みは受け付けました。お支払い画面をご用意できなかったため、お支払い方法については担当より改めてご連絡いたします。';
         } else {
           document.getElementById('enrollDoneMsg').textContent = '受付が完了しました。担当より改めてご連絡いたします。';
         }
