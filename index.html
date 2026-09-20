@@ -110,14 +110,14 @@
 
     .note { font-size:12px; color:var(--text-soft); margin-top:6px; line-height:1.5; }
 
-    #step-done, #step-enroll-done { text-align:center; padding:36px 20px; }
+    #step-done, #step-enroll-done, #step-member-done, #step-result { text-align:center; padding:36px 20px; }
     .done-badge {
       display:inline-flex; align-items:center; justify-content:center;
       width:64px; height:64px; border-radius:50%;
       background:rgba(2,185,0,0.12); margin-bottom:18px;
     }
     .done-badge svg { width:32px; height:32px; }
-    #step-done p, #step-enroll-done p { font-size:15px; margin:0 0 6px; }
+    #step-done p, #step-enroll-done p, #step-member-done p, #step-result p { font-size:15px; margin:0 0 6px; }
     .done-sub { font-size:13px; color:var(--text-soft); }
 
     .back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0 0 14px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--text-soft);cursor:pointer;}
@@ -455,6 +455,101 @@
     <button type="submit">入会手続き・お支払いへ進む</button>
   </form>
 
+
+  <!-- ===== 既存会員：お支払い登録 ===== -->
+  <form id="member-form" style="display:none">
+    <div class="card">
+      <p class="card-title">すでに会員の方：お支払い方法の登録</p>
+      <p class="gi-lead" style="font-size:13.5px;">いつもありがとうございます。月謝のお支払いを新しい仕組みに切り替えるため、一度だけご登録をお願いします。入会金はかかりません。</p>
+    </div>
+
+    <div class="card">
+      <p class="card-title">保護者様のご連絡先</p>
+      <div class="field">
+        <label for="m-parentName">保護者様のお名前 *</label>
+        <input type="text" id="m-parentName" required>
+      </div>
+      <div class="field">
+        <label for="m-parentTel">電話番号 *</label>
+        <input type="tel" id="m-parentTel" required>
+      </div>
+      <div class="field">
+        <label for="m-email">メールアドレス *</label>
+        <input type="email" id="m-email" required>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">通っている教室</p>
+      <div class="field">
+        <label for="m-program">プログラム *</label>
+        <select id="m-program" required>
+          <option value="">選択してください</option>
+          <option value="JUMP UP">ジャンプアップ教室＜運動・ダンス＞</option>
+          <option value="KSCA">KSCA＜クスカ＞</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="m-classId">クラス *</label>
+        <select id="m-classId" required>
+          <option value="">まずプログラムを選んでください</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">お子様について</p>
+      <div class="field">
+        <label for="m-childName">お子様のお名前 *</label>
+        <input type="text" id="m-childName" required>
+      </div>
+      <div class="field">
+        <label for="m-childKana">ふりがな *</label>
+        <input type="text" id="m-childKana" required>
+      </div>
+      <div class="field">
+        <label for="m-grade">学年 *</label>
+        <select id="m-grade" required>
+          <option value="">選択</option><option>2歳児</option><option>年少</option><option>年中</option><option>年長</option>
+          <option>小1</option><option>小2</option><option>小3</option><option>小4</option>
+          <option>小5</option><option>小6</option><option>中学生以上</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">これからの月謝のお支払い方法</p>
+      <div class="pay-options">
+        <label><input type="radio" name="m-payMethod" value="card" required> クレジットカード（自動引き落とし）</label>
+        <label><input type="radio" name="m-payMethod" value="konbini"> コンビニ払い（毎月LINEでご案内）</label>
+        <label><input type="radio" name="m-payMethod" value="bank_transfer"> 銀行振込（毎月LINEでご案内）</label>
+      </div>
+      <div class="note">カードを選んだ場合、この後の画面でカードをご登録いただきます。初回の引き落としは翌月1日からです（今月分はこれまで通りのお支払いです）。</div>
+    </div>
+
+    <button type="submit">登録する</button>
+  </form>
+
+  <div id="step-member-done" style="display:none">
+    <div class="done-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 13L9.5 17.5L19 7" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p>ご登録ありがとうございました。</p>
+    <p class="done-sub" id="memberDoneMsg"></p>
+  </div>
+
+  <div id="step-result" style="display:none">
+    <div class="done-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 13L9.5 17.5L19 7" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p id="resultTitle"></p>
+    <p class="done-sub" id="resultMsg"></p>
+  </div>
+
   <div id="step-enroll-done" style="display:none">
     <div class="done-badge">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -488,7 +583,7 @@ function gasCall(fn, args) {
   if (fn === 'getLiffId') {
     return fetch(GAS_URL + '?action=liffId' + bust).then(function(r){ return r.json(); }).then(function(o){ return (o && o.liffId) || ''; });
   }
-  if (fn === 'submitTrial' || fn === 'submitEnrollment') {
+  if (fn === 'submitTrial' || fn === 'submitEnrollment' || fn === 'registerExisting') {
     return fetch(GAS_URL + '?action=' + fn, { method:'POST', body: JSON.stringify(args[0] || {}) })
       .then(function(r){ return r.json(); })
       .then(function(o){
@@ -500,7 +595,7 @@ function gasCall(fn, args) {
 }
 
 window.google = { script: { run: (function(){
-  var names = ['getClasses','getAvailableDates','submitTrial','submitEnrollment','getLiffId'];
+  var names = ['getClasses','getAvailableDates','submitTrial','submitEnrollment','registerExisting','getLiffId'];
   function make(onOk, onNg){
     var o = {};
     o.withSuccessHandler = function(cb){ return make(cb, onNg); };
@@ -627,7 +722,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
 <script>
 (function(){
   function showOnly(id, fromHistory){
-    ['kind-select','trial-form','enroll-form','step-enroll-done'].forEach(function(x){
+    ['kind-select','trial-form','enroll-form','step-enroll-done','member-form','step-member-done','step-result'].forEach(function(x){
       var el = document.getElementById(x);
       if (el) el.style.setProperty('display', x===id ? 'block' : 'none', 'important');
     });
@@ -639,17 +734,39 @@ document.addEventListener('DOMContentLoaded', initLiff);
   }
   window.addEventListener('popstate', function(){
     var loading = document.getElementById('step-loading');
-    if (loading && loading.style.display === 'none') showOnly('kind-select', true);
+    if (loading && loading.style.display === 'none') showOnly(getParam('mode') === 'member' ? 'member-form' : 'kind-select', true);
   });
   document.addEventListener('DOMContentLoaded', function(){
     Array.prototype.forEach.call(document.querySelectorAll('[data-back]'), function(b){
       b.addEventListener('click', function(){ history.back(); });
     });
   });
+  function getParam(name){
+    var v = new URLSearchParams(location.search).get(name);
+    if (v) return v;
+    var st = new URLSearchParams(location.search).get('liff.state');
+    if (st) { try { return new URLSearchParams(decodeURIComponent(st).replace(/^[^?]*\?/, '')).get(name); } catch(e){} }
+    return null;
+  }
+  function initialView(){
+    var enrolled = getParam('enrolled'), registered = getParam('registered');
+    if (enrolled === 'success') return { view:'step-result', title:'お支払いが完了しました。', msg:'ご入会ありがとうございます。担当より改めてLINEでご連絡いたします。' };
+    if (enrolled === 'cancel') return { view:'step-result', title:'お支払いは完了していません。', msg:'お申込み内容は受け付けています。お支払い方法については、担当よりLINEでご連絡いたします。' };
+    if (registered === 'success') return { view:'step-result', title:'カードのご登録が完了しました。', msg:'次回から月謝は自動でお支払いいただけます。ありがとうございました。' };
+    if (registered === 'cancel') return { view:'step-result', title:'カードの登録は完了していません。', msg:'お手数ですが、もう一度LINEのリンクからご登録ください。' };
+    if (getParam('mode') === 'member') return { view:'member-form' };
+    return { view:'kind-select' };
+  }
   function waitForReady(){
     var loading = document.getElementById('step-loading');
     if (loading && loading.style.display === 'none') {
-      showOnly('kind-select');
+      var v = initialView();
+      if (v.view === 'step-result') {
+        document.getElementById('resultTitle').textContent = v.title;
+        document.getElementById('resultMsg').textContent = v.msg;
+      }
+      if (v.view === 'member-form') loadMemberClasses();
+      showOnly(v.view);
     } else {
       setTimeout(waitForReady, 150);
     }
@@ -681,6 +798,63 @@ document.addEventListener('DOMContentLoaded', initLiff);
       opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
       select.appendChild(opt);
     });
+  });
+
+  var memberAllClasses = [];
+  function loadMemberClasses(){
+    google.script.run.withSuccessHandler(function(classes){ memberAllClasses = classes || []; }).getClasses();
+  }
+  document.getElementById('m-program').addEventListener('change', function(){
+    var select = document.getElementById('m-classId');
+    select.innerHTML = '';
+    var filtered = memberAllClasses.filter(function(c){ return c.program === this.value; }, this);
+    if (filtered.length === 0) { select.innerHTML = '<option value="">該当クラスがありません</option>'; return; }
+    select.innerHTML = '<option value="">選択してください</option>';
+    filtered.forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
+      select.appendChild(opt);
+    });
+  });
+  document.getElementById('member-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var lp = null;
+    function go(){
+      var payload = {
+        parentName: document.getElementById('m-parentName').value,
+        parentTel: document.getElementById('m-parentTel').value,
+        email: document.getElementById('m-email').value,
+        program: document.getElementById('m-program').value,
+        classId: document.getElementById('m-classId').value,
+        childName: document.getElementById('m-childName').value,
+        childKana: document.getElementById('m-childKana').value,
+        grade: document.getElementById('m-grade').value,
+        payMethod: (document.querySelector('input[name=m-payMethod]:checked') || {}).value || '',
+        lineUserId: lp ? lp.userId : '',
+        lineName: lp ? lp.displayName : ''
+      };
+      document.getElementById('member-form').style.setProperty('display','none','important');
+      document.getElementById('step-member-done').style.setProperty('display','block','important');
+      document.getElementById('memberDoneMsg').textContent = '登録しています…';
+      google.script.run.withSuccessHandler(function(result){
+        if (result && result.checkoutUrl) {
+          document.getElementById('memberDoneMsg').textContent = 'カードのご登録画面へ移動します…';
+          top.location.href = result.checkoutUrl;
+        } else if (result && result.checkoutError) {
+          document.getElementById('memberDoneMsg').textContent = 'ご登録は受け付けました。カード登録画面をご用意できなかったため、担当より改めてご連絡いたします。';
+        } else if (payload.payMethod === 'konbini' || payload.payMethod === 'bank_transfer') {
+          document.getElementById('memberDoneMsg').textContent = '毎月1日に、このLINEへお支払いのご案内をお送りします。';
+        } else {
+          document.getElementById('memberDoneMsg').textContent = 'ご登録を受け付けました。';
+        }
+      }).withFailureHandler(function(err){
+        document.getElementById('memberDoneMsg').textContent = 'エラーが発生しました。お手数ですが事務局までご連絡ください（' + (err && err.message ? err.message : err) + '）';
+      }).registerExisting(payload);
+    }
+    if (window.liff && liff.isLoggedIn && liff.isLoggedIn()) {
+      liff.getProfile().then(function(p){ lp = p; go(); }).catch(function(){ go(); });
+    } else { go(); }
   });
 
   document.getElementById('enroll-form').addEventListener('submit', function(e){
