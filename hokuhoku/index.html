@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ほくほく親子デー お申込み | educare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#FBF6EC;
+      --card:#FFFFFF;
+      --orange:#FD9E1D;
+      --orange-dark:#E8890A;
+      --green:#02B900;
+      --green-dark:#029B00;
+      --imo:#7C2B50;
+      --yolk:#F7C843;
+      --text:#4A3F30;
+      --text-soft:#8A7C68;
+      --border:#EFE3CF;
+      --radius-lg:22px;
+      --radius-md:14px;
+    }
+    * { box-sizing:border-box; }
+    body {
+      font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN",sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(253,158,29,0.10) 0%, rgba(253,158,29,0) 42%),
+        radial-gradient(circle at 96% 18%, rgba(124,43,80,0.06) 0%, rgba(124,43,80,0) 40%),
+        var(--cream);
+      margin:0;
+      padding:28px 16px 72px;
+      color:var(--text);
+      line-height:1.6;
+    }
+    #app { max-width:480px; margin:0 auto; }
+
+    .brand { text-align:center; margin-bottom:22px; }
+    .brand-logo { display:inline-block; width:120px; margin-bottom:8px; }
+    .brand-logo img { display:block; width:100%; height:auto; }
+    .brand-of { font-size:12px; color:var(--text-soft); letter-spacing:0.12em; margin:0 0 10px; }
+    .brand-pill { display:inline-block; background:var(--imo); color:#fff; font-weight:700; font-size:13px; padding:3px 14px; border-radius:999px; margin-bottom:6px; }
+    h1 { font-size:26px; font-weight:900; margin:0 0 4px; letter-spacing:0.02em; color:var(--imo); }
+    .brand-sub { font-size:13px; color:var(--text-soft); margin:0; }
+
+    .card {
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      padding:22px 20px;
+      margin-bottom:18px;
+      box-shadow:0 4px 18px rgba(180,140,80,0.07);
+    }
+    .card-title {
+      display:flex; align-items:center; gap:8px;
+      font-size:13px; font-weight:700; color:var(--orange-dark);
+      letter-spacing:0.06em; margin:0 0 18px;
+    }
+    .card-title::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--orange); flex:none; }
+
+    .info-list { margin:0; padding:0; list-style:none; font-size:14px; display:flex; flex-direction:column; gap:8px; }
+    .info-list li { display:flex; gap:10px; }
+    .info-list .k { flex:none; width:3.2em; font-weight:700; color:var(--imo); }
+    .price-table { width:100%; border-collapse:collapse; font-size:14px; margin-top:4px; }
+    .price-table td { padding:7px 0; border-top:1px dashed var(--border); }
+    .price-table td:last-child { text-align:right; font-weight:700; white-space:nowrap; color:var(--imo); }
+
+    .field { margin-bottom:16px; }
+    .field:last-child { margin-bottom:0; }
+    #referral-block .field, #school-other-field { margin-bottom:16px; }
+    label, .label { display:block; font-weight:700; margin-bottom:7px; font-size:13.5px; color:var(--text); }
+    .req { color:#C0392B; font-size:11.5px; margin-left:6px; font-weight:700; }
+    .opt { color:var(--text-soft); font-size:11.5px; margin-left:6px; font-weight:500; }
+
+    select, input[type=text], input[type=email], input[type=tel], textarea {
+      width:100%; padding:11px 12px;
+      border:1.5px solid var(--border); border-radius:var(--radius-md);
+      font-size:16px; font-family:inherit; color:var(--text);
+      background:#FFFDF9;
+      transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    select:focus, input:focus, textarea:focus { outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(253,158,29,0.15); }
+    textarea { resize:vertical; }
+
+    .choice-list { display:flex; flex-direction:column; gap:10px; }
+    .choice-list label {
+      display:flex; align-items:center; gap:10px; margin:0;
+      padding:12px 12px; border:1.5px solid var(--border); border-radius:var(--radius-md);
+      background:#FFFDF9; font-weight:500; cursor:pointer; min-height:48px;
+    }
+    .choice-list input[type=radio], .agree input[type=checkbox] { accent-color:var(--orange); width:18px; height:18px; margin:0; flex:none; }
+    .choice-list .price { margin-left:auto; font-weight:700; color:var(--imo); white-space:nowrap; }
+
+    .child-row { display:grid; grid-template-columns:minmax(0,1fr) 108px 44px; gap:8px; margin-bottom:10px; align-items:center; }
+    .child-row .remove {
+      width:44px; height:44px; border:1.5px solid var(--border); border-radius:var(--radius-md);
+      background:#FFFDF9; color:var(--text-soft); font-size:20px; line-height:1; cursor:pointer; font-family:inherit;
+    }
+    .add-child {
+      width:100%; min-height:44px; border:1.5px dashed var(--orange); border-radius:var(--radius-md);
+      background:#FFF9EE; color:var(--orange-dark); font-weight:700; font-size:14px; font-family:inherit; cursor:pointer;
+    }
+
+    .total {
+      background:#FFF1C7; border-radius:var(--radius-md); padding:14px 16px; margin-top:14px;
+      display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    }
+    .total .t-label { font-size:13.5px; font-weight:700; }
+    .total .t-sub { font-size:12px; color:var(--text-soft); margin-top:2px; }
+    .total .t-amount { font-size:26px; font-weight:900; color:var(--imo); white-space:nowrap; }
+    .total .t-amount small { font-size:14px; }
+
+    .agree label { display:flex; gap:10px; align-items:flex-start; font-weight:500; font-size:14px; margin:0; cursor:pointer; }
+    .agree input[type=checkbox] { margin-top:3px; }
+
+    button[type=submit], .primary-btn {
+      display:block; width:100%; background:linear-gradient(135deg, var(--green), var(--green-dark));
+      color:#fff; border:none; padding:16px 24px; border-radius:28px;
+      font-size:16.5px; font-weight:700; font-family:inherit; text-align:center; text-decoration:none;
+      letter-spacing:0.03em; cursor:pointer;
+      box-shadow:0 8px 20px rgba(2,185,0,0.28);
+    }
+    button[type=submit]:disabled { opacity:.6; cursor:default; }
+    .line-btn { display:block; width:100%; background:#06C755; color:#fff; padding:14px 24px; border-radius:28px; font-size:15.5px; font-weight:700; text-align:center; text-decoration:none; margin-top:18px; }
+
+    .note { font-size:12px; color:var(--text-soft); margin-top:6px; line-height:1.5; }
+    .error { display:none; background:#FDECEA; color:#A93226; border-radius:var(--radius-md); padding:12px 14px; font-size:13.5px; font-weight:700; margin-bottom:14px; }
+    .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+    .result { text-align:center; padding:36px 20px; }
+    .done-badge { display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:rgba(2,185,0,0.12); margin-bottom:18px; }
+    .done-badge svg { width:32px; height:32px; }
+    .result p { font-size:15px; margin:0 0 6px; }
+    .done-sub { font-size:13px; color:var(--text-soft); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div class="brand">
+    <div class="brand-logo"><img src="../logo.png?v=3" alt="educare 子育てサポート"></div>
+    <p class="brand-of">educare（エデュカーレ）</p>
+    <div class="brand-pill"><span style="font-weight:500;font-size:11.5px;color:#F7C843;margin-right:6px">体操教室でおなじみ</span>たいき先生の</div>
+    <h1>ほくほく親子デー</h1>
+    <p class="brand-sub">お申込みフォーム</p>
+  </div>
+
+  <!-- ===== フォーム ===== -->
+  <div id="step-form">
+    <div class="card">
+      <p class="card-title">イベントのご案内</p>
+      <ul class="info-list">
+        <li><span class="k">日時</span><span>11月1日（日）10:00〜14:00ごろ<br>そのあとも自由に遊んでいけます</span></li>
+        <li><span class="k">場所</span><span>ねむの森（愛知県瀬戸市長谷口町69-4）<br>現地集合・駐車場は10台ほど</span></li>
+        <li><span class="k">内容</span><span>焼き芋、マシュマロ、飯盒</span></li>
+        <li><span class="k">雨の日</span><span>小雨なら決行、大雨の場合は前日に判断します</span></li>
+        <li><span class="k">締切</span><span>10月29日（木）まで</span></li>
+      </ul>
+    </div>
+
+    <form id="event-form" novalidate>
+      <div class="card">
+        <p class="card-title">保護者の方について</p>
+        <div class="hp" aria-hidden="true">
+          <label for="website">この欄は空のままにしてください</label>
+          <input type="text" id="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="parentName">お名前<span class="req">必須</span></label>
+          <input type="text" id="parentName" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="email">メールアドレス<span class="req">必須</span></label>
+          <input type="email" id="email" autocomplete="email" inputmode="email">
+          <p class="note">当日のご案内をこのアドレスにお送りします。</p>
+        </div>
+        <div class="field">
+          <label for="tel">当日連絡のつく電話番号<span class="req">必須</span></label>
+          <input type="tel" id="tel" autocomplete="tel" inputmode="tel">
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">参加費の区分</p>
+        <div class="field">
+          <span class="label">あてはまるものをえらんでください<span class="req">必須</span></span>
+          <div class="choice-list" id="category-list"></div>
+          <p class="note">子ども1人あたりの金額です。きょうだいも同じ料金、保護者と2歳以下は無料です。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">参加するお子さま</p>
+        <div class="field">
+          <span class="label">お名前と年齢<span class="req">必須</span></span>
+          <div id="children"></div>
+          <button type="button" class="add-child" id="add-child">＋ お子さまを追加</button>
+          <p class="note">2歳以下のお子さまも入力してください（無料です）。年齢は当日時点でお願いします。</p>
+        </div>
+        <div class="field">
+          <label for="adults">参加する大人の人数<span class="req">必須</span></label>
+          <select id="adults">
+            <option value="1">1人</option>
+            <option value="2">2人</option>
+            <option value="3">3人</option>
+            <option value="4">4人</option>
+            <option value="5">5人以上</option>
+          </select>
+        </div>
+        <div class="total" aria-live="polite">
+          <div>
+            <div class="t-label">参加費の合計</div>
+            <div class="t-sub" id="total-sub">区分とお子さまを入力すると計算されます</div>
+          </div>
+          <div class="t-amount"><span id="total-amount">0</span><small>円</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">たいき先生とのつながり</p>
+        <div class="field">
+          <label for="school">通っている園<span class="req">必須</span></label>
+          <select id="school"></select>
+          <p class="note">たいき先生が体操でおじゃましている園に通っている方は、園名をえらんでください。</p>
+        </div>
+        <div class="field" id="school-other-field" style="display:none">
+          <label for="schoolOther">園・学校の名前<span class="opt">任意</span></label>
+          <input type="text" id="schoolOther">
+        </div>
+        <div id="referral-block" style="display:none">
+          <div class="field">
+            <label for="source">このイベントを何で知りましたか<span class="req">必須</span></label>
+            <select id="source">
+              <option value="">えらんでください</option>
+              <option>友だち・知り合いの紹介</option>
+              <option>園に貼ってあったチラシ</option>
+              <option>SNS</option>
+              <option>その他</option>
+            </select>
+          </div>
+          <div class="field" id="referrer-field" style="display:none">
+            <label for="referrer">ご紹介者のお名前<span class="req">必須</span></label>
+            <input type="text" id="referrer" placeholder="例：〇〇くんのお母さん">
+          </div>
+        </div>
+        <div class="field">
+          <label for="memo">たいき先生へ伝えておきたいこと<span class="opt">任意</span></label>
+          <textarea id="memo" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">ご確認ください</p>
+        <ul class="info-list" style="margin-bottom:16px">
+          <li><span><strong>お子さまのみの参加はできません。</strong>保護者の方と一緒にご参加ください。</span></li>
+          <li><span>スタッフはたいき先生ひとりです。保護者の方の責任のもとで遊び、お子さまから目を離さないようお願いします。</span></li>
+          <li><span>参加費は事前のクレジットカード決済です。キャンセル料はかかりません。</span></li>
+        </ul>
+        <div class="agree">
+          <label><input type="checkbox" id="agree"><span>上の内容を確認しました<span class="req">必須</span></span></label>
+        </div>
+      </div>
+
+      <div class="error" id="form-error" role="alert"></div>
+      <button type="submit" id="submit-btn">申し込む</button>
+      <p class="note" style="text-align:center" id="submit-note">このあと、お支払い画面（Stripe）にすすみます。</p>
+    </form>
+  </div>
+
+  <!-- ===== 結果画面 ===== -->
+  <div id="step-paid" class="card result" style="display:none">
+    <div class="done-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <p><strong>お申込みとお支払いが完了しました。</strong></p>
+    <p class="done-sub">当日のご案内をメールでお送りしています。<br>来られなくなったときは、公式LINEからメッセージをください。</p>
+    <a class="line-btn" href="https://lin.ee/SFKMEAz">公式LINEを友だち追加する</a>
+  </div>
+
+  <div id="step-free" class="card result" style="display:none">
+    <div class="done-badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <p><strong>お申込みを受け付けました。</strong></p>
+    <p class="done-sub">当日のご案内をメールでお送りしています。<br>来られなくなったときは、公式LINEからメッセージをください。</p>
+    <a class="line-btn" href="https://lin.ee/SFKMEAz">公式LINEを友だち追加する</a>
+  </div>
+
+  <div id="step-payerr" class="card result" style="display:none">
+    <p><strong>お申込みを受け付けました。</strong></p>
+    <p class="done-sub">お支払い画面をご用意できなかったため、<br>お支払い方法は、たいき先生から改めてご連絡します。</p>
+    <a class="line-btn" href="https://lin.ee/SFKMEAz">公式LINEを友だち追加する</a>
+  </div>
+
+  <div id="step-closed" class="card result" style="display:none">
+    <p><strong>お申込みの受付は終了しました。</strong></p>
+    <p class="done-sub">たくさんのお申込み、ありがとうございました。<br>お問い合わせは公式LINEからお願いします。</p>
+    <a class="line-btn" href="https://lin.ee/SFKMEAz">公式LINEで問い合わせる</a>
+  </div>
+
+  <div id="step-cancel" class="card result" style="display:none">
+    <p><strong>お支払いはまだ完了していません。</strong></p>
+    <p class="done-sub">お申込みは受け付けています。<br>お送りしたメールのリンクから、お支払いをお願いします。</p>
+    <a class="line-btn" href="https://lin.ee/SFKMEAz">公式LINEで問い合わせる</a>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+ * 設定（ここを書きかえれば内容が変わります）
+ * ========================================================= */
+// Apps Script をデプロイしたあとの URL（…/exec）を入れる
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwyBZTzMPeDq-Sie44mzZshxdeOWv_P53MvijdO4dIp6Kx0fIlnbqCMM-co95cVYDfd-A/exec';
+
+// 参加費の区分（子ども1人あたり・円）。金額は Apps Script 側の CFG.PRICES と必ず同じにする
+var CATEGORIES = [
+  { id:'kusuka',  label:'クスカ参加者',                  price:300  },
+  { id:'member',  label:'JUMP UP・英語教室branch 会員',   price:500  },
+  { id:'general', label:'一般',                          price:700  }
+];
+
+// 「通っている園」の選択肢（園を足すときはここに1行追加）
+var SCHOOLS = [
+  '美園幼稚園',
+  '美園こども園',
+  '尾頭橋ちとせ',
+  'ささしまちとせ',
+  '志賀ちとせ',
+  '鶴舞ちとせ',
+  'ココロネ学園'
+];
+var SCHOOL_OTHER = 'その他の園・学校';
+var SCHOOL_NONE  = '通っていない';
+
+// 申込締切（この日時をすぎると受付終了の表示になる）。Apps Script 側の CFG.DEADLINE と同じにする
+var DEADLINE = '2026-10-29T23:59:59+09:00';
+
+var FREE_AGE_MAX = 2;   // この年齢以下は無料
+var MAX_CHILDREN = 8;
+
+/* =========================================================
+ * 画面の組み立て
+ * ========================================================= */
+function $(id){ return document.getElementById(id); }
+function show(id){
+  ['step-form','step-paid','step-free','step-payerr','step-closed','step-cancel'].forEach(function(s){
+    $(s).style.display = (s === id) ? '' : 'none';
+  });
+  window.scrollTo(0, 0);
+}
+
+function buildCategories(){
+  var box = $('category-list');
+  CATEGORIES.forEach(function(c){
+    var label = document.createElement('label');
+    var input = document.createElement('input');
+    input.type = 'radio'; input.name = 'category'; input.value = c.id;
+    input.addEventListener('change', updateTotal);
+    var name = document.createElement('span'); name.textContent = c.label;
+    var price = document.createElement('span'); price.className = 'price';
+    price.textContent = c.price.toLocaleString('ja-JP') + '円';
+    label.appendChild(input); label.appendChild(name); label.appendChild(price);
+    box.appendChild(label);
+  });
+}
+
+function buildSchools(){
+  var sel = $('school');
+  var first = document.createElement('option'); first.value = ''; first.textContent = 'えらんでください';
+  sel.appendChild(first);
+  SCHOOLS.concat([SCHOOL_OTHER, SCHOOL_NONE]).forEach(function(s){
+    var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+  });
+  sel.addEventListener('change', updateSchoolFields);
+  $('source').addEventListener('change', updateSchoolFields);
+}
+
+function updateSchoolFields(){
+  var v = $('school').value;
+  var unknown = (v === SCHOOL_OTHER || v === SCHOOL_NONE);
+  $('school-other-field').style.display = (v === SCHOOL_OTHER) ? '' : 'none';
+  $('referral-block').style.display = unknown ? '' : 'none';
+  $('referrer-field').style.display = (unknown && $('source').value === '友だち・知り合いの紹介') ? '' : 'none';
+}
+
+function addChild(){
+  var box = $('children');
+  if (box.children.length >= MAX_CHILDREN) return;
+  var row = document.createElement('div'); row.className = 'child-row';
+
+  var name = document.createElement('input');
+  name.type = 'text'; name.className = 'child-name'; name.placeholder = 'お子さまのお名前';
+  name.setAttribute('aria-label', 'お子さまのお名前');
+
+  var age = document.createElement('select'); age.className = 'child-age';
+  age.setAttribute('aria-label', '年齢');
+  var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '年齢'; age.appendChild(o0);
+  for (var i = 0; i <= 13; i++){
+    var o = document.createElement('option'); o.value = String(i);
+    o.textContent = (i === 13) ? '13歳以上' : (i + '歳');
+    age.appendChild(o);
+  }
+  age.addEventListener('change', updateTotal);
+
+  var rm = document.createElement('button');
+  rm.type = 'button'; rm.className = 'remove'; rm.textContent = '×';
+  rm.setAttribute('aria-label', 'このお子さまを削除');
+  rm.addEventListener('click', function(){
+    if (box.children.length > 1) { box.removeChild(row); updateTotal(); }
+  });
+
+  row.appendChild(name); row.appendChild(age); row.appendChild(rm);
+  box.appendChild(row);
+  updateTotal();
+}
+
+function readChildren(){
+  var rows = $('children').querySelectorAll('.child-row');
+  var list = [];
+  for (var i = 0; i < rows.length; i++){
+    list.push({
+      name: rows[i].querySelector('.child-name').value.trim(),
+      age:  rows[i].querySelector('.child-age').value
+    });
+  }
+  return list;
+}
+
+function selectedCategory(){
+  var r = document.querySelector('input[name=category]:checked');
+  if (!r) return null;
+  for (var i = 0; i < CATEGORIES.length; i++) if (CATEGORIES[i].id === r.value) return CATEGORIES[i];
+  return null;
+}
+
+function calc(){
+  var cat = selectedCategory();
+  var paid = 0, free = 0;
+  readChildren().forEach(function(c){
+    if (c.age === '') return;
+    if (Number(c.age) <= FREE_AGE_MAX) free++; else paid++;
+  });
+  return { cat:cat, paid:paid, free:free, total: cat ? cat.price * paid : 0 };
+}
+
+function updateTotal(){
+  var r = calc();
+  $('total-amount').textContent = r.total.toLocaleString('ja-JP');
+  var parts = [];
+  if (r.cat && r.paid) parts.push(r.cat.price.toLocaleString('ja-JP') + '円 × ' + r.paid + '人');
+  if (r.free) parts.push('2歳以下 ' + r.free + '人は無料');
+  $('total-sub').textContent = parts.length ? parts.join('／') : '区分とお子さまを入力すると計算されます';
+  $('submit-note').textContent = (r.cat && (r.paid + r.free) > 0 && r.total === 0)
+    ? 'お支払いはありません。このまま申込みが完了します。'
+    : 'このあと、お支払い画面（Stripe）にすすみます。';
+}
+
+/* =========================================================
+ * 送信
+ * ========================================================= */
+function fail(msg){
+  var e = $('form-error'); e.textContent = msg; e.style.display = 'block';
+  e.scrollIntoView({ block:'center' });
+  return false;
+}
+
+function collect(){
+  var kids = readChildren().filter(function(c){ return c.name !== '' || c.age !== ''; });
+  var cat = selectedCategory();
+  var school = $('school').value;
+  var unknown = (school === SCHOOL_OTHER || school === SCHOOL_NONE);
+  var p = {
+    parentName: $('parentName').value.trim(),
+    email: $('email').value.trim(),
+    tel: $('tel').value.trim(),
+    category: cat ? cat.id : '',
+    children: kids,
+    adults: $('adults').value,
+    school: school,
+    schoolOther: (school === SCHOOL_OTHER) ? $('schoolOther').value.trim() : '',
+    source: unknown ? $('source').value : '',
+    referrer: (unknown && $('source').value === '友だち・知り合いの紹介') ? $('referrer').value.trim() : '',
+    memo: $('memo').value.trim(),
+    website: $('website').value
+  };
+  if (!p.parentName) return fail('保護者の方のお名前を入力してください。');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) return fail('メールアドレスを確認してください。');
+  if (p.tel.replace(/[^0-9]/g, '').length < 10) return fail('電話番号を確認してください。');
+  if (!p.category) return fail('参加費の区分をえらんでください。');
+  if (!kids.length) return fail('参加するお子さまを入力してください。');
+  for (var i = 0; i < kids.length; i++){
+    if (!kids[i].name || kids[i].age === '') return fail('お子さまのお名前と年齢を、すべて入力してください。');
+  }
+  if (!p.school) return fail('通っている園をえらんでください。');
+  if (unknown && !p.source) return fail('このイベントを何で知ったかをえらんでください。');
+  if (unknown && p.source === '友だち・知り合いの紹介' && !p.referrer) return fail('ご紹介者のお名前を入力してください。');
+  if (!$('agree').checked) return fail('ご確認の内容にチェックを入れてください。');
+  return p;
+}
+
+function onSubmit(ev){
+  ev.preventDefault();
+  $('form-error').style.display = 'none';
+  var p = collect();
+  if (!p) return;
+  if (GAS_URL.indexOf('http') !== 0) return fail('ただいま準備中です。もうしばらくお待ちください。');
+
+  var btn = $('submit-btn');
+  btn.disabled = true; btn.textContent = '送信しています…';
+
+  fetch(GAS_URL + '?action=submit', { method:'POST', body: JSON.stringify(p) })
+    .then(function(r){ return r.json(); })
+    .then(function(o){
+      if (!o || o.ok !== true) throw new Error((o && o.error) || '送信できませんでした。');
+      if (o.checkoutUrl) { window.location.href = o.checkoutUrl; return; }
+      show(o.total > 0 ? 'step-payerr' : 'step-free');
+    })
+    .catch(function(err){
+      btn.disabled = false; btn.textContent = '申し込む';
+      fail((err && err.message) ? err.message : '送信できませんでした。時間をおいてもう一度お試しください。');
+    });
+}
+
+/* =========================================================
+ * 起動
+ * ========================================================= */
+(function init(){
+  buildCategories();
+  buildSchools();
+  addChild();
+  $('add-child').addEventListener('click', addChild);
+  $('event-form').addEventListener('submit', onSubmit);
+
+  var q = new URLSearchParams(window.location.search);
+  if (q.get('done') === '1') {
+    show('step-paid');
+    var sid = q.get('sid') || '';
+    if (sid && GAS_URL.indexOf('http') === 0) {
+      // 支払い済みの記録をシートにつける（失敗しても1時間ごとの自動確認で反映される）
+      fetch(GAS_URL + '?action=confirm&sid=' + encodeURIComponent(sid) + '&_=' + Date.now()).catch(function(){});
+    }
+  } else if (q.get('cancel') === '1') {
+    show('step-cancel');
+  } else if (Date.now() > new Date(DEADLINE).getTime()) {
+    show('step-closed');
+  }
+})();
+</script>
+</body>
+</html>
