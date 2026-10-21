@@ -367,8 +367,12 @@
         </select>
       </div>
       <div class="field">
-        <label for="e-startDate">入会希望日 *</label>
-        <input type="date" id="e-startDate" required>
+        <label for="e-startDate">入会希望日（初回レッスン日） *</label>
+        <select id="e-startDateSel" required>
+          <option value="">まず希望クラスを選んでください</option>
+        </select>
+        <input type="date" id="e-startDate" required style="display:none">
+        <p class="help" id="e-startDateHelp" style="display:none;font-size:12px;color:#777;margin:4px 0 0">開催日が未登録のクラスです。ご希望の日付を入力してください。</p>
       </div>
     </div>
 
@@ -577,6 +581,15 @@ function gasCall(fn, args) {
   if (fn === 'getAvailableDates') {
     return fetch(GAS_URL + '?action=dates&classId=' + encodeURIComponent(args[0] || '') + bust).then(function(r){ return r.json(); });
   }
+  if (fn === 'getEnrollStartDates') {
+    var cid = encodeURIComponent(args[0] || '');
+    return fetch(GAS_URL + '?action=startDates&classId=' + cid + bust)
+      .then(function(r){ return r.text(); })
+      .then(function(t){ var v = JSON.parse(t); if (!Array.isArray(v)) throw new Error('not array'); return v; })
+      .catch(function(){ // 旧バージョンのGAS（startDates未対応）なら体験候補日で代用
+        return fetch(GAS_URL + '?action=dates&classId=' + cid + bust).then(function(r){ return r.json(); });
+      });
+  }
   if (fn === 'getLiffId') {
     return fetch(GAS_URL + '?action=liffId' + bust).then(function(r){ return r.json(); }).then(function(o){ return (o && o.liffId) || ''; });
   }
@@ -592,7 +605,7 @@ function gasCall(fn, args) {
 }
 
 window.google = { script: { run: (function(){
-  var names = ['getClasses','getAvailableDates','submitTrial','submitEnrollment','registerExisting','getLiffId'];
+  var names = ['getClasses','getAvailableDates','getEnrollStartDates','submitTrial','submitEnrollment','registerExisting','getLiffId'];
   function make(onOk, onNg){
     var o = {};
     o.withSuccessHandler = function(cb){ return make(cb, onNg); };
@@ -795,6 +808,53 @@ document.addEventListener('DOMContentLoaded', initLiff);
       opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
       select.appendChild(opt);
     });
+    // クラスが変わったら入会希望日もリセット
+    setEnrollStartDates(null);
+  });
+
+  // 入会希望日：年間スケジュールから候補を取得。候補が無いクラスは日付入力に切替
+  var eStartSel  = document.getElementById('e-startDateSel');
+  var eStartInp  = document.getElementById('e-startDate');
+  var eStartHelp = document.getElementById('e-startDateHelp');
+  function fmtJa(d){
+    var w = ['日','月','火','水','木','金','土'];
+    var dt = new Date(d + 'T00:00:00+09:00');
+    return (dt.getMonth()+1) + '月' + dt.getDate() + '日（' + w[dt.getDay()] + '）';
+  }
+  function setEnrollStartDates(dates){
+    eStartSel.innerHTML = '';
+    eStartSel.value = '';
+    if (dates === null) {                 // クラス未選択 or 読み込み中
+      eStartSel.innerHTML = '<option value="">まず希望クラスを選んでください</option>';
+      eStartSel.style.display = ''; eStartSel.required = true;
+      eStartInp.style.display = 'none'; eStartInp.required = false; eStartInp.value = '';
+      eStartHelp.style.display = 'none';
+      return;
+    }
+    if (!dates || dates.length === 0) {   // 開催日が無い → 日付入力にフォールバック
+      eStartSel.style.display = 'none'; eStartSel.required = false;
+      eStartInp.style.display = ''; eStartInp.required = true;
+      eStartHelp.style.display = '';
+      return;
+    }
+    eStartSel.innerHTML = '<option value="">選択してください</option>';
+    dates.forEach(function(d){
+      var opt = document.createElement('option');
+      opt.value = d; opt.textContent = fmtJa(d);
+      eStartSel.appendChild(opt);
+    });
+    eStartSel.style.display = ''; eStartSel.required = true;
+    eStartInp.style.display = 'none'; eStartInp.required = false;
+    eStartHelp.style.display = 'none';
+  }
+  document.getElementById('e-classId').addEventListener('change', function(){
+    if (!this.value) { setEnrollStartDates(null); return; }
+    eStartSel.innerHTML = '<option value="">読み込み中…</option>';
+    google.script.run.withSuccessHandler(function(dates){
+      setEnrollStartDates(dates || []);
+    }).withFailureHandler(function(){
+      setEnrollStartDates([]);
+    }).getEnrollStartDates(this.value);
   });
 
   var memberAllClasses = [];
@@ -868,7 +928,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
         program: document.getElementById('e-program').value,
         classId: document.getElementById('e-classId').value,
         classLabel: classLabel,
-        startDate: document.getElementById('e-startDate').value,
+        startDate: (eStartSel.style.display !== 'none' ? eStartSel.value : eStartInp.value),
         childName: document.getElementById('e-childName').value,
         childKana: document.getElementById('e-childKana').value,
         gender: (document.querySelector('input[name=e-gender]:checked') || {}).value || '',
