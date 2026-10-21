@@ -449,6 +449,15 @@
     </div>
 
     <div class="card">
+      <p class="card-title">割引（該当する場合のみ）</p>
+      <div class="pay-options">
+        <label><input type="checkbox" id="e-hasSibling"> ごきょうだいが在籍している（兄弟姉妹割引 −500円／月）</label>
+        <label><input type="checkbox" id="e-hasMultiClass"> このお子さまが他の教室にも在籍している（複数教室割引 −500円／月）</label>
+      </div>
+      <div class="note">在籍状況を確認のうえ、月謝に割引を反映します。</div>
+    </div>
+
+    <div class="card">
       <div class="field">
         <label><input type="checkbox" id="e-agree" required> 会員規約に同意します *</label>
       </div>
@@ -526,6 +535,15 @@
         <label><input type="radio" name="m-payMethod" value="bank_transfer"> 銀行振込（毎月LINEでご案内）</label>
       </div>
       <div class="note">カードを選んだ場合、この後の画面でカードをご登録いただきます。初回の引き落としは翌月1日からです（今月分はこれまで通りのお支払いです）。</div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">割引（該当する場合のみ）</p>
+      <div class="pay-options">
+        <label><input type="checkbox" id="m-hasSibling"> ごきょうだいが在籍している（兄弟姉妹割引 −500円／月）</label>
+        <label><input type="checkbox" id="m-hasMultiClass"> このお子さまが他の教室にも在籍している（複数教室割引 −500円／月）</label>
+      </div>
+      <div class="note">在籍状況を確認のうえ、月謝に割引を反映します。</div>
     </div>
 
     <button type="submit">登録する</button>
@@ -907,6 +925,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         childKana: document.getElementById('m-childKana').value,
         grade: document.getElementById('m-grade').value,
         payMethod: (document.querySelector('input[name=m-payMethod]:checked') || {}).value || '',
+        hasSibling: document.getElementById('m-hasSibling').checked,
+        hasMultiClass: document.getElementById('m-hasMultiClass').checked,
         lineUserId: lp ? lp.userId : '',
         lineName: lp ? lp.displayName : ''
       };
@@ -963,6 +983,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         emg2Rel: document.getElementById('e-emg2Rel').value,
         emg2Tel: document.getElementById('e-emg2Tel').value,
         payMethod: (document.querySelector('input[name=e-payMethod]:checked') || {}).value || '',
+        hasSibling: document.getElementById('e-hasSibling').checked,
+        hasMultiClass: document.getElementById('e-hasMultiClass').checked,
         lineUserId: lp ? lp.userId : '',
         lineName: lp ? lp.displayName : ''
       };
