@@ -604,6 +604,24 @@ function gasCall(fn, args) {
   return Promise.reject(new Error('unknown function: ' + fn));
 }
 
+/* 送信完了時に「保護者本人から」公式LINEへ報告メッセージを自動送信（送信報告ボタンの自動化）
+ * LINEアプリ内で開いた時だけ動く。失敗しても申込処理には影響させない。Promiseを返す（最大2.5秒で諦める） */
+function lineSelfReport(text) {
+  try {
+    if (!window.liff || !liff.isInClient || !liff.isInClient()) return Promise.resolve(false);
+    var p = liff.sendMessages([{ type: 'text', text: text }]).then(function(){ return true; }).catch(function(){ return false; });
+    var t = new Promise(function(res){ setTimeout(function(){ res(false); }, 2500); });
+    return Promise.race([p, t]);
+  } catch (e) { return Promise.resolve(false); }
+}
+function fmtDateJa(d){
+  if (!d) return '';
+  var w = ['日','月','火','水','木','金','土'];
+  var dt = new Date(String(d).slice(0,10) + 'T00:00:00+09:00');
+  if (isNaN(dt)) return d;
+  return (dt.getMonth()+1) + '月' + dt.getDate() + '日（' + w[dt.getDay()] + '）';
+}
+
 window.google = { script: { run: (function(){
   var names = ['getClasses','getAvailableDates','getEnrollStartDates','submitTrial','submitEnrollment','registerExisting','getLiffId'];
   function make(onOk, onNg){
@@ -721,6 +739,7 @@ document.getElementById('trial-form').addEventListener('submit', function(e) {
     document.getElementById('trial-form').style.display = 'none';
     document.getElementById('doneClass').textContent = classLabel ? ('ご予約クラス：' + classLabel) : '';
     document.getElementById('step-done').style.display = 'block';
+    lineSelfReport('【体験申込】送信しました\n' + classLabel + '\n希望日：' + fmtDateJa(payload.date) + '\nお子さま：' + payload.childName);
   }).withFailureHandler(function(err){
     alert('送信に失敗しました。お手数ですが事務局までご連絡ください（' + (err && err.message ? err.message : err) + '）');
   }).submitTrial(payload);
@@ -895,9 +914,12 @@ document.addEventListener('DOMContentLoaded', initLiff);
       document.getElementById('step-member-done').style.setProperty('display','block','important');
       document.getElementById('memberDoneMsg').textContent = '登録しています…';
       google.script.run.withSuccessHandler(function(result){
+        var mSel = document.getElementById('m-classId');
+        var mLabel = (mSel && mSel.options[mSel.selectedIndex]) ? mSel.options[mSel.selectedIndex].textContent.trim() : '';
+        var report = lineSelfReport('【お支払い登録】送信しました\n' + mLabel + '\nお子さま：' + payload.childName + '\nお支払い：' + (payload.payMethod === 'card' ? 'カード' : payload.payMethod === 'bank_transfer' ? '銀行振込' : payload.payMethod));
         if (result && result.checkoutUrl) {
           document.getElementById('memberDoneMsg').textContent = 'カードのご登録画面へ移動します…';
-          top.location.href = result.checkoutUrl;
+          report.then(function(){ top.location.href = result.checkoutUrl; });
         } else if (result && result.checkoutError) {
           document.getElementById('memberDoneMsg').textContent = 'ご登録は受け付けました。カード登録画面をご用意できなかったため、担当より改めてご連絡いたします。';
         } else if (payload.payMethod === 'konbini' || payload.payMethod === 'bank_transfer') {
@@ -947,9 +969,10 @@ document.addEventListener('DOMContentLoaded', initLiff);
       document.getElementById('enroll-form').style.setProperty('display','none','important');
       document.getElementById('step-enroll-done').style.setProperty('display','block','important');
       google.script.run.withSuccessHandler(function(result){
+        var report = lineSelfReport('【入会申込】送信しました\n' + classLabel + '\n入会希望日：' + fmtDateJa(payload.startDate) + '\nお子さま：' + payload.childName + '\nお支払い：' + (payload.payMethod === 'card' ? 'カード' : payload.payMethod === 'bank_transfer' ? '銀行振込' : payload.payMethod));
         if (result && result.checkoutUrl) {
           document.getElementById('enrollDoneMsg').textContent = 'お支払い画面へ移動します…';
-          top.location.href = result.checkoutUrl;
+          report.then(function(){ top.location.href = result.checkoutUrl; });
         } else if (result && result.checkoutError) {
           document.getElementById('enrollDoneMsg').textContent = 'お申込みは受け付けました。お支払い画面をご用意できなかったため、お支払い方法については担当より改めてご連絡いたします。';
         } else {
