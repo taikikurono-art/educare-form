@@ -174,6 +174,14 @@
     .fee-table{width:100%;border-collapse:collapse;margin:4px 0 2px;font-size:13.5px;}
     .fee-table th,.fee-table td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:500;}
     .fee-table td{text-align:right;font-weight:700;white-space:nowrap;}
+    .line-guide{margin:22px auto 0;max-width:420px;text-align:left;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 18px 16px;}
+    .line-guide h3{margin:0 0 6px;font-size:15.5px;text-align:center;}
+    .line-guide .lg-lead{font-size:13px;color:var(--text-soft);line-height:1.7;margin:0 0 14px;text-align:center;}
+    .line-guide .lg-step{display:flex;gap:10px;align-items:flex-start;margin-top:12px;}
+    .line-guide .lg-num{flex:none;width:26px;height:26px;border-radius:50%;background:#06C755;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;}
+    .line-guide .lg-step p{margin:0 0 8px;font-size:13px;line-height:1.6;}
+    .line-guide a.lg-btn{display:block;text-align:center;background:#06C755;color:#fff;text-decoration:none;font-weight:700;font-size:14.5px;padding:12px;border-radius:24px;}
+    .line-guide a.lg-btn.lg-sub{background:#fff;color:#06A84A;border:1.5px solid #06C755;}
     .kiyaku-close{background:linear-gradient(135deg,var(--orange),var(--orange-dark));border:none;color:#fff;}
   </style>
 </head>
@@ -590,6 +598,7 @@
     </div>
     <p id="resultTitle"></p>
     <p class="done-sub" id="resultMsg"></p>
+    <div id="result-line" class="line-guide" style="display:none"></div>
   </div>
 
   <div id="step-enroll-done" style="display:none">
@@ -845,9 +854,52 @@ document.addEventListener('DOMContentLoaded', initLiff);
     if (st) { try { return new URLSearchParams(decodeURIComponent(st).replace(/^[^?]*\?/, '')).get(name); } catch(e){} }
     return null;
   }
+  // 入会後の案内先（教室ID → LINE公式アカウント）。GAS側 LINE_OA_BY_CLASS と同じ内容
+  var LINE_OA_BY_CLASS = [
+    ['KSCA-', '@370ayyzo', 'クスカ（KSCA）'],
+    ['JMP-KASUGAI', '@248sbrlg', 'JUMP UP運動教室'],
+    ['JMP-SETO', '@248sbrlg', 'JUMP UP運動教室'],
+    ['JMP-KOKORONE-DANCE', '@278diewi', 'ジャンプアップダンス教室＜ココロネ学童＞'],
+    ['JMP-KOKORONE', '@852xadxx', 'ジャンプアップ体操教室＜ココロネ学童＞'],
+    ['JMP-SASASHIMA-DANCE', '@376frudh', 'JUMP UPダンス教室'],
+    ['JMP-SHIGA-DANCE', '@376frudh', 'JUMP UPダンス教室'],
+    ['JMP-ODOBASHI', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
+    ['JMP-TSURUMAI', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
+    ['JMP-SASASHIMA', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
+    ['JMP-SHIGA', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
+    ['ENG', '@717bxmer', '英語教室branch＜ブランチ＞'],
+    ['BRANCH', '@717bxmer', '英語教室branch＜ブランチ＞']
+  ];
+  function lineOaFor(classId){
+    var id = String(classId || '').toUpperCase();
+    for (var i = 0; i < LINE_OA_BY_CLASS.length; i++) if (id.indexOf(LINE_OA_BY_CLASS[i][0]) === 0) return { id: LINE_OA_BY_CLASS[i][1], name: LINE_OA_BY_CLASS[i][2] };
+    return null;
+  }
+  function escHtml(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function renderLineGuide(cls, memberId){
+    var last = null;
+    try { last = JSON.parse(localStorage.getItem('educare_last_enroll') || 'null'); } catch (e) {}
+    if (!cls && last) cls = last.cls;
+    var oa = lineOaFor(cls);
+    var box = document.getElementById('result-line');
+    if (!oa || !box) return;
+    var child = last && last.cls === cls ? last.child : '';
+    var label = last && last.cls === cls ? String(last.label || '').trim() : '';
+    var hello = child
+      ? '【入会登録】' + child + (label ? '（' + label + '）' : '') + 'の入会手続きが完了しました。よろしくお願いします。'
+      : '【入会登録】入会手続きが完了しました。（会員ID：' + (memberId || '') + '）よろしくお願いします。';
+    var addUrl = 'https://line.me/R/ti/p/' + encodeURIComponent(oa.id);
+    var msgUrl = 'https://line.me/R/oaMessage/' + encodeURIComponent(oa.id) + '/?' + encodeURIComponent(hello);
+    box.innerHTML =
+      '<h3>教室のLINEにご登録ください</h3>' +
+      '<p class="lg-lead">これからの教室からのご連絡（お知らせ・お休みの連絡など）は、<b>「' + escHtml(oa.name) + '」</b>のLINEで行います。</p>' +
+      '<div class="lg-step"><div class="lg-num">1</div><div style="flex:1"><p>友だち追加をしてください</p><a class="lg-btn" href="' + addUrl + '">友だち追加する</a></div></div>' +
+      '<div class="lg-step"><div class="lg-num">2</div><div style="flex:1"><p>追加できたら、下のボタンを押して、そのまま「送信」を押してください（担当がお客さまを確認するためです）</p><a class="lg-btn lg-sub" href="' + msgUrl + '">入会のご連絡を送る</a></div></div>';
+    box.style.display = 'block';
+  }
   function initialView(){
     var enrolled = getParam('enrolled'), registered = getParam('registered');
-    if (enrolled === 'success') return { view:'step-result', title:'お支払いが完了しました。', msg:'ご入会ありがとうございます。担当より改めてLINEでご連絡いたします。' };
+    if (enrolled === 'success') return { view:'step-result', title:'お支払いが完了しました。', msg:'ご入会ありがとうございます。最後に、教室のLINEへのご登録をお願いします。' };
     if (enrolled === 'cancel') return { view:'step-result', title:'お支払いは完了していません。', msg:'お申込み内容は受け付けています。お支払い方法については、担当よりLINEでご連絡いたします。' };
     if (registered === 'success') return { view:'step-result', title:'カードのご登録が完了しました。', msg:'次回から月謝は自動でお支払いいただけます。ありがとうございました。' };
     if (registered === 'cancel') return { view:'step-result', title:'カードの登録は完了していません。', msg:'お手数ですが、もう一度LINEのリンクからご登録ください。' };
@@ -861,6 +913,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
       if (v.view === 'step-result') {
         document.getElementById('resultTitle').textContent = v.title;
         document.getElementById('resultMsg').textContent = v.msg;
+        if (getParam('enrolled') === 'success') renderLineGuide(getParam('cls'), getParam('member'));
       }
       if (v.view === 'member-form') loadMemberClasses();
       showOnly(v.view);
@@ -1017,6 +1070,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
         var report = lineSelfReport('【入会申込】送信しました\n' + classLabel + '\n入会希望日：' + fmtDateJa(payload.startDate) + '\nお子さま：' + payload.childName + '\nお支払い：' + (payload.payMethod === 'card' ? 'カード' : payload.payMethod === 'bank_transfer' ? '銀行振込' : payload.payMethod));
         if (result && result.checkoutUrl) {
           document.getElementById('enrollDoneMsg').textContent = 'お支払い画面へ移動します…';
+          try { localStorage.setItem('educare_last_enroll', JSON.stringify({ child: payload.childName, cls: payload.classId, label: classLabel, t: Date.now() })); } catch (e) {}
           report.then(function(){ top.location.href = result.checkoutUrl; });
         } else if (result && result.checkoutError) {
           document.getElementById('enrollDoneMsg').textContent = 'お申込みは受け付けました。お支払い画面をご用意できなかったため、お支払い方法については担当より改めてご連絡いたします。';
