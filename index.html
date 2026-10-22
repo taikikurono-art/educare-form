@@ -406,6 +406,8 @@
         </select>
         <input type="date" id="e-startDate" required style="display:none">
         <p class="help" id="e-startDateHelp" style="display:none;font-size:12px;color:#777;margin:4px 0 0">開催日が未登録のクラスです。ご希望の日付を入力してください。</p>
+        <p class="help" style="font-size:12px;color:#777;margin:4px 0 0">今月・来月・再来月の日付から選べます。月謝はこの日の月から始まります（日割りはありません）。</p>
+        <div class="note" id="e-feeStartNote" style="display:none;background:#FFF6E5;padding:8px 10px;border-radius:8px;color:#4A3F30;font-size:12.5px"></div>
       </div>
     </div>
 
@@ -478,7 +480,7 @@
         <label><input type="radio" name="e-payMethod" value="card" required> クレジットカード（自動引き落とし）</label>
         <label><input type="radio" name="e-payMethod" value="bank_transfer"> 銀行振込（毎月請求）</label>
       </div>
-      <div class="note">入会金・年度更新料はこの後のお支払い画面でカード決済していただきます。月謝のお支払い方法は上記からお選びください。</div>
+      <div class="note">入会金（今月スタートの方は今月分の月謝も）は、この後のお支払い画面でお支払いいただきます。月謝のお支払い方法は上記からお選びください。</div>
     </div>
 
     <div class="card">
@@ -984,6 +986,14 @@ document.addEventListener('DOMContentLoaded', initLiff);
       eStartSel.style.display = 'none'; eStartSel.required = false;
       eStartInp.style.display = ''; eStartInp.required = true;
       eStartHelp.style.display = '';
+      (function(){ // 今日〜再来月末まで
+        var n = new Date(), pad = function(x){ return ('0'+x).slice(-2); };
+        var t = new Date(n.getFullYear(), n.getMonth(), n.getDate()+1);
+        var e = new Date(n.getFullYear(), n.getMonth()+3, 0);
+        eStartInp.min = t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+        eStartInp.max = e.getFullYear()+'-'+pad(e.getMonth()+1)+'-'+pad(e.getDate());
+      })();
+      updateFeeStartNote();
       return;
     }
     eStartSel.innerHTML = '<option value="">選択してください</option>';
@@ -995,7 +1005,33 @@ document.addEventListener('DOMContentLoaded', initLiff);
     eStartSel.style.display = ''; eStartSel.required = true;
     eStartInp.style.display = 'none'; eStartInp.required = false;
     eStartHelp.style.display = 'none';
+    updateFeeStartNote();
   }
+  // 入会希望日の月 → 入会時に払う金額と、月謝の始まりを表示
+  var feeNote = document.getElementById('e-feeStartNote');
+  function updateFeeStartNote(){
+    var cls = document.getElementById('e-classId').value || '';
+    var d = (eStartSel.style.display !== 'none' ? eStartSel.value : eStartInp.value) || '';
+    var monthly = cls && !/^KSCA|^JMP-SETO/.test(cls);
+    var m = d.match(/^(\d{4})-(\d{2})/);
+    if (!monthly || !m) { feeNote.style.display = 'none'; return; }
+    var now = new Date(), y = +m[1], mo = +m[2];
+    var diff = (y*12+mo) - (now.getFullYear()*12+now.getMonth()+1);
+    var card = ((document.querySelector('input[name=e-payMethod]:checked') || {}).value || '') === 'card';
+    var nextMo = ((now.getMonth()+1) % 12) + 1;
+    var html;
+    if (diff <= 0) {
+      html = '<b>' + (now.getMonth()+1) + '月スタート</b>：入会時のお支払いは<b>入会金＋' + (now.getMonth()+1) + '月分の月謝</b>です（月の途中からでも日割りはありません）。<br>' +
+        (card ? nextMo + '月からは、毎月1日にカードで自動引き落としになります。' : nextMo + '月からは、毎月1日にLINEでお支払いをご案内します。');
+    } else {
+      html = '<b>' + mo + '月スタート</b>：入会時のお支払いは<b>入会金のみ</b>です。<br>' +
+        (card ? '月謝は' + mo + '月1日から、毎月1日にカードで自動引き落としになります。' : '月謝は' + mo + '月1日から、毎月1日にLINEでお支払いをご案内します。');
+    }
+    feeNote.innerHTML = html; feeNote.style.display = '';
+  }
+  eStartSel.addEventListener('change', updateFeeStartNote);
+  eStartInp.addEventListener('change', updateFeeStartNote);
+  document.querySelectorAll('input[name=e-payMethod]').forEach(function(r){ r.addEventListener('change', updateFeeStartNote); });
   document.getElementById('e-classId').addEventListener('change', function(){
     if (!this.value) { setEnrollStartDates(null); return; }
     eStartSel.innerHTML = '<option value="">読み込み中…</option>';
