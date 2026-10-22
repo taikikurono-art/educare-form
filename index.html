@@ -119,6 +119,27 @@
     .done-badge svg { width:32px; height:32px; }
     #step-done p, #step-enroll-done p, #step-member-done p, #step-result p { font-size:15px; margin:0 0 6px; }
     .done-sub { font-size:13px; color:var(--text-soft); }
+    .prep { display:flex; flex-direction:column; align-items:center; gap:12px; padding:8px 0 4px; }
+    .ring { width:44px; height:44px; border:4px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin .8s linear infinite; }
+    .bar { width:min(260px,80%); height:6px; border-radius:3px; background:var(--border); overflow:hidden; position:relative; }
+    .bar::after { content:""; position:absolute; top:0; bottom:0; width:40%; border-radius:3px; background:var(--orange); animation:slide 1.3s ease-in-out infinite; }
+    @keyframes slide { from { left:-40%; } to { left:100%; } }
+    @media (prefers-reduced-motion: reduce) { .ring, .bar::after { animation-duration:3s; } }
+    .busy { position:fixed; inset:0; z-index:1100; display:none; align-items:center; justify-content:center; background:rgba(251,246,236,0.82); }
+    .busy.on { display:flex; }
+    .busy-box { background:var(--card); border:1.5px solid var(--border); border-radius:18px; padding:22px 26px; display:flex; flex-direction:column; align-items:center; gap:12px; font-size:14px; }
+    .sum { text-align:left; background:var(--card); border:1.5px solid var(--border); border-radius:16px; padding:16px; margin:14px auto 0; max-width:420px; }
+    .sum h3 { margin:0 0 8px; font-size:16px; text-align:center; }
+    .sum table { width:100%; border-collapse:collapse; font-size:14px; }
+    .sum td { padding:7px 4px; border-bottom:1px solid var(--border); vertical-align:top; }
+    .sum td.amt { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .sum tr.disc td { color:#C0392B; }
+    .sum tr.total td { font-weight:700; font-size:16px; border-bottom:0; padding-top:10px; }
+    .sum .why { font-size:12.5px; color:var(--text-soft); margin-top:2px; }
+    .sum .monthly { font-size:13px; background:var(--cream); border-radius:10px; padding:10px 12px; margin-top:10px; line-height:1.7; }
+    .sum-actions { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+    #sum-go, #btn-resume { width:100%; background:linear-gradient(135deg, var(--green), var(--green-dark)); color:#fff; border:none; padding:15px 24px; border-radius:28px; font-size:16px; font-weight:700; font-family:inherit; cursor:pointer; box-shadow:0 8px 20px rgba(2,185,0,0.28); }
+    #sum-go:disabled, #btn-resume:disabled { opacity:.7; }
 
     .back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0 0 14px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--text-soft);cursor:pointer;}
     .back-btn:active{opacity:.6;}
@@ -579,7 +600,8 @@
   </form>
 
   <div id="step-member-done" style="display:none">
-    <div class="done-badge">
+    <div class="prep" id="member-prep"><div class="ring" aria-hidden="true"></div><div class="bar" aria-hidden="true"></div></div>
+    <div class="done-badge" id="member-badge" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 13L9.5 17.5L19 7" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -605,14 +627,15 @@
   </div>
 
   <div id="step-enroll-done" style="display:none">
-    <div class="done-badge">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M5 13L9.5 17.5L19 7" stroke="#02B900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+    <div class="prep" id="enroll-prep">
+      <div class="ring" aria-hidden="true"></div>
+      <p id="enrollDoneMsg">お支払い内容を準備しています…</p>
+      <div class="bar" aria-hidden="true"></div>
+      <p class="done-sub">10秒ほどかかることがあります。このままお待ちください。</p>
     </div>
-    <p>お申込みを受け付けました。</p>
-    <p class="done-sub" id="enrollDoneMsg">お支払い手続きへ進みます…</p>
+    <div id="enroll-summary" style="display:none"></div>
   </div>
+  <div class="busy" id="busy" role="status" aria-live="polite"><div class="busy-box"><div class="ring" aria-hidden="true"></div><span id="busyMsg">確認しています…</span></div></div>
 
 </div>
 
@@ -671,8 +694,10 @@ function lineSelfReport(text) {
 function confirmDiscount(payload, done){
   var modal = document.getElementById('disc-modal'), body = document.getElementById('disc-body');
   var fired = false;
-  function go(){ if (fired) return; fired = true; done(payload); }
+  showBusy('ご登録内容を確認しています…');
+  function go(){ if (fired) return; fired = true; hideBusy(); done(payload); }
   gasCall('discountCheck', [payload]).then(function(r){
+    hideBusy();
     if (!r || !r.eligible) return go();
     var sib = (r.siblings || []), phoneOnly = r.phoneOnly || 0, multi = (r.multi || []);
     if (!sib.length && !phoneOnly && !multi.length) return go();
@@ -711,6 +736,28 @@ function confirmDiscount(payload, done){
       if (payload.__onBack) payload.__onBack();
     };
   }).catch(function(){ go(); });
+}
+function showBusy(msg){ var b = document.getElementById('busy'); if (!b) return; document.getElementById('busyMsg').textContent = msg || '処理しています…'; b.classList.add('on'); }
+function hideBusy(){ var b = document.getElementById('busy'); if (b) b.classList.remove('on'); }
+function yen(n){ return (n < 0 ? '−' : '') + Math.abs(Number(n) || 0).toLocaleString('ja-JP') + '円'; }
+/* お支払い画面に進む前の確認（金額の内訳と割引の理由） */
+function renderPaySummary(box, sum, onGo, onEdit){
+  var rows = (sum.items || []).map(function(it){ return '<tr><td>' + escHtml(it.name) + '</td><td class="amt">' + yen(it.amount) + '</td></tr>'; }).join('');
+  if (sum.discountAmount) rows += '<tr class="disc"><td>' + escHtml(sum.discountName || '割引') + '<div class="why">' + escHtml(sum.discountWhy || '') + '</div></td><td class="amt">' + yen(-sum.discountAmount) + '</td></tr>';
+  rows += '<tr class="total"><td>今回のお支払い</td><td class="amt">' + yen(sum.total) + '</td></tr>';
+  var m = sum.monthly, mh = '';
+  if (m) {
+    mh = '<div class="monthly"><b>' + escHtml(m.startLabel) + 'からの月謝：' + yen(m.after) + '／月</b>' +
+      (m.discount ? '（' + yen(m.amount) + ' − ' + escHtml(m.discountName) + ' ' + yen(m.discount) + '）' : '') + '<br>' +
+      (m.method === 'card' ? '毎月1日に、このあと入力するカードで自動で引き落とされます（毎月のお手続きは不要です）。' : '毎月1日に、LINEで振込のご案内をお送りします。') + '</div>';
+  }
+  box.innerHTML = '<div class="sum"><h3>お支払い内容の確認</h3><table>' + rows + '</table>' + mh +
+    '<p class="done-sub" style="margin-top:10px">よろしければ、お支払いのページに進んでください。</p>' +
+    '<div class="sum-actions"><button type="button" id="sum-go">お支払いのページに進む</button>' +
+    '<button type="button" class="back-btn" id="sum-edit" style="align-self:center;padding-bottom:0">入力内容を修正する</button></div></div>';
+  box.style.display = 'block';
+  document.getElementById('sum-go').onclick = function(){ this.disabled = true; this.textContent = 'お支払いのページを開いています…'; onGo(); };
+  document.getElementById('sum-edit').onclick = onEdit;
 }
 function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
@@ -913,11 +960,22 @@ document.addEventListener('DOMContentLoaded', initLiff);
     var msg = document.getElementById('resumeMsg');
     document.getElementById('btn-resume').onclick = function(){
       var b = this; b.disabled = true; b.textContent = 'お支払い画面を用意しています…'; msg.textContent = '';
+      showBusy('お支払い内容を準備しています…');
       gasCall('resumeCheckout', [{ memberId: memberId }]).then(function(r){
+        hideBusy();
+        if (r && r.checkoutUrl && r.summary) {
+          box.style.display = 'none';
+          var holder = document.getElementById('resume-summary');
+          if (!holder) { holder = document.createElement('div'); holder.id = 'resume-summary'; box.parentNode.appendChild(holder); }
+          renderPaySummary(holder, r.summary, function(){ top.location.href = r.checkoutUrl; },
+            function(){ var d = readDraft(); if (d && d.payload) restoreEnrollForm(d.payload, memberId); });
+          return;
+        }
         if (r && r.checkoutUrl) { top.location.href = r.checkoutUrl; return; }
         b.disabled = false; b.textContent = 'お支払い画面にもどる';
         msg.textContent = (r && r.error) || 'お支払い画面を用意できませんでした。';
       }).catch(function(err){
+        hideBusy();
         b.disabled = false; b.textContent = 'お支払い画面にもどる';
         msg.textContent = (err && err.message) || 'お支払い画面を用意できませんでした。';
       });
@@ -927,6 +985,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
     if (!draft || !draft.payload) { edit.style.display = 'none'; return; }
     edit.onclick = function(){ restoreEnrollForm(draft.payload, memberId); };
   }
+  window.__editFromSummary = function(p, memberId){ restoreEnrollForm(p, memberId); };
   function setVal(id, v){ var el = document.getElementById(id); if (el && v != null) el.value = v; }
   function setRadio(name, v){ var el = document.querySelector('input[name=' + name + '][value="' + v + '"]'); if (el) el.checked = true; }
   function restoreEnrollForm(p, memberId){
@@ -1175,8 +1234,10 @@ document.addEventListener('DOMContentLoaded', initLiff);
       if (mBtn) { mBtn.disabled = false; mBtn.textContent = '登録する'; }
       document.getElementById('member-form').style.setProperty('display','none','important');
       document.getElementById('step-member-done').style.setProperty('display','block','important');
-      document.getElementById('memberDoneMsg').textContent = '登録しています…';
+      document.getElementById('memberDoneMsg').textContent = '登録しています…（10秒ほどかかることがあります）';
+      document.getElementById('member-prep').style.display = ''; document.getElementById('member-badge').style.display = 'none';
       google.script.run.withSuccessHandler(function(result){
+        if (!(result && result.checkoutUrl)) { document.getElementById('member-prep').style.display = 'none'; document.getElementById('member-badge').style.display = ''; }
         var mSel = document.getElementById('m-classId');
         var mLabel = (mSel && mSel.options[mSel.selectedIndex]) ? mSel.options[mSel.selectedIndex].textContent.trim() : '';
         if (result && result.checkoutUrl) {
@@ -1245,13 +1306,20 @@ document.addEventListener('DOMContentLoaded', initLiff);
       if (eBtn) { eBtn.disabled = false; eBtn.textContent = eBtnText; }
       document.getElementById('enroll-form').style.setProperty('display','none','important');
       document.getElementById('step-enroll-done').style.setProperty('display','block','important');
+      document.getElementById('enroll-prep').style.display = '';
+      document.getElementById('enroll-summary').style.display = 'none';
+      document.getElementById('enrollDoneMsg').textContent = 'お支払い内容を準備しています…';
+      window.scrollTo(0, 0);
       google.script.run.withSuccessHandler(function(result){
         if (result && result.checkoutUrl) {
-          document.getElementById('enrollDoneMsg').textContent = 'お支払い画面へ移動します…';
           try { localStorage.setItem('educare_last_enroll', JSON.stringify({ child: payload.childName, cls: payload.classId, label: classLabel, t: Date.now() })); } catch (e) {}
           try { localStorage.setItem('educare_enroll_draft', JSON.stringify({ memberId: result.memberId || '', payload: payload, t: Date.now() })); } catch (e) {}
           window.__replaceMemberId = '';
-          top.location.href = result.checkoutUrl;
+          if (!result.summary) { document.getElementById('enrollDoneMsg').textContent = 'お支払いのページを開いています…'; top.location.href = result.checkoutUrl; return; }
+          document.getElementById('enroll-prep').style.display = 'none';
+          renderPaySummary(document.getElementById('enroll-summary'), result.summary,
+            function(){ top.location.href = result.checkoutUrl; },
+            function(){ document.getElementById('enroll-summary').style.display = 'none'; document.getElementById('enroll-prep').style.display = ''; window.__editFromSummary(payload, result.memberId); });
           return;
         }
         if (false) {
