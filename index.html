@@ -182,6 +182,10 @@
     .line-guide .lg-step p{margin:0 0 8px;font-size:13px;line-height:1.6;}
     .line-guide a.lg-btn{display:block;text-align:center;background:#06C755;color:#fff;text-decoration:none;font-weight:700;font-size:14.5px;padding:12px;border-radius:24px;}
     .line-guide a.lg-btn.lg-sub{background:#fff;color:#06A84A;border:1.5px solid #06C755;}
+    .line-guide .lg-menu{margin-top:16px;padding-top:14px;border-top:1px dashed var(--border);}
+    .line-guide .lg-menu img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--border);margin:6px 0 10px;}
+    .line-guide .lg-menu ul{margin:0;padding-left:1.2em;font-size:12.5px;line-height:1.8;}
+    .line-guide .lg-menu .lg-warn{margin-top:8px;font-size:12px;color:#B5651D;background:#FFF6E8;border-radius:8px;padding:8px 10px;line-height:1.6;}
     .kiyaku-close{background:linear-gradient(135deg,var(--orange),var(--orange-dark));border:none;color:#fff;}
   </style>
 </head>
@@ -856,26 +860,46 @@ document.addEventListener('DOMContentLoaded', initLiff);
   }
   // 入会後の案内先（教室ID → LINE公式アカウント）。GAS側 LINE_OA_BY_CLASS と同じ内容
   var LINE_OA_BY_CLASS = [
-    ['KSCA-', '@370ayyzo', 'クスカ（KSCA）'],
-    ['JMP-KASUGAI', '@248sbrlg', 'JUMP UP運動教室'],
-    ['JMP-SETO', '@248sbrlg', 'JUMP UP運動教室'],
-    ['JMP-KOKORONE-DANCE', '@278diewi', 'ジャンプアップダンス教室＜ココロネ学童＞'],
-    ['JMP-KOKORONE', '@852xadxx', 'ジャンプアップ体操教室＜ココロネ学童＞'],
-    ['JMP-SASASHIMA-DANCE', '@376frudh', 'JUMP UPダンス教室'],
-    ['JMP-SHIGA-DANCE', '@376frudh', 'JUMP UPダンス教室'],
-    ['JMP-ODOBASHI', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
-    ['JMP-TSURUMAI', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
-    ['JMP-SASASHIMA', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
-    ['JMP-SHIGA', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞'],
-    ['ENG', '@717bxmer', '英語教室branch＜ブランチ＞'],
-    ['BRANCH', '@717bxmer', '英語教室branch＜ブランチ＞']
+    ['KSCA-', '@370ayyzo', 'クスカ（KSCA）', 'kusuka'],
+    ['JMP-KASUGAI', '@248sbrlg', 'JUMP UP運動教室', 'undou'],
+    ['JMP-SETO', '@248sbrlg', 'JUMP UP運動教室', 'undou'],
+    ['JMP-KOKORONE-DANCE', '@278diewi', 'ジャンプアップダンス教室＜ココロネ学童＞', 'kokorone-dance'],
+    ['JMP-KOKORONE', '@852xadxx', 'ジャンプアップ体操教室＜ココロネ学童＞', 'kokorone-gym'],
+    ['JMP-SASASHIMA-DANCE', '@376frudh', 'JUMP UPダンス教室', 'dance'],
+    ['JMP-SHIGA-DANCE', '@376frudh', 'JUMP UPダンス教室', 'dance'],
+    ['JMP-ODOBASHI', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞', 'chitose'],
+    ['JMP-TSURUMAI', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞', 'chitose'],
+    ['JMP-SASASHIMA', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞', 'chitose'],
+    ['JMP-SHIGA', '@716znxra', 'JUMP UP 体操教室＜ちとせ保育園＞', 'chitose'],
+    ['ENG', '@717bxmer', '英語教室branch＜ブランチ＞', 'branch'],
+    ['BRANCH', '@717bxmer', '英語教室branch＜ブランチ＞', 'branch']
   ];
+  // トーク画面の下に出るメニュー（リッチメニュー）の使い方
+  var PAYPAL_NOTE = '「会費決済」は、これまでのお支払い方法（PayPal）用のボタンです。この画面からお支払い方法を登録された方は使いません（二重のお支払いにご注意ください）。';
+  var RICHMENU_TIPS = {
+    'chitose':        { tips: ['お休み・遅刻のときは「欠席・遅刻連絡」', '開催日は「年間カレンダー」', '会員規約・振替のルールは「会員規約・振替について」', 'イベントのお知らせは「シーズンイベント」'], warn: PAYPAL_NOTE },
+    'undou':          { tips: ['お休みのときは「欠席連絡」', '開催日は「年間予定」', '会員規約・会費は「会員規約・会費について」', 'できるようになった技は「JUMP UP QUEST」で見られます'], warn: PAYPAL_NOTE },
+    'kokorone-gym':   { tips: ['お休みのときは「欠席連絡」', '開催日は「年間予定」', '会員規約・会費は「会員規約・会費について」', 'できるようになった技は「JUMP UP QUEST」で見られます'], warn: PAYPAL_NOTE },
+    'dance':          { tips: ['お休みのときは「欠席連絡」', '開催日は「年間予定」', '会員規約・会費は「会員規約・会費について」', 'イベントのお知らせは「イベント」'], warn: PAYPAL_NOTE },
+    'kokorone-dance': { tips: ['お休みのときは「欠席連絡」', '開催日は「年間予定」', '会員規約・会費は「会員規約・会費について」', 'イベントのお知らせは「イベント」'], warn: PAYPAL_NOTE },
+    'kusuka':         { tips: ['毎月の出欠の回答とお支払いは「ATTENDANCE」（保護者ページが開きます。合言葉は自動で入ります）', '出欠の回答は、活動の2週間前までにお願いします', '活動の様子は「SNS」（Instagram）でも見られます'], warn: '' },
+    'branch':         { tips: ['お休み・遅刻のときは「欠席・遅刻連絡」', '開催日は「年間カレンダー」'], warn: PAYPAL_NOTE }
+  };
   function lineOaFor(classId){
     var id = String(classId || '').toUpperCase();
-    for (var i = 0; i < LINE_OA_BY_CLASS.length; i++) if (id.indexOf(LINE_OA_BY_CLASS[i][0]) === 0) return { id: LINE_OA_BY_CLASS[i][1], name: LINE_OA_BY_CLASS[i][2] };
+    for (var i = 0; i < LINE_OA_BY_CLASS.length; i++) if (id.indexOf(LINE_OA_BY_CLASS[i][0]) === 0) return { id: LINE_OA_BY_CLASS[i][1], name: LINE_OA_BY_CLASS[i][2], menu: LINE_OA_BY_CLASS[i][3] };
     return null;
   }
   function escHtml(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function menuHtml(oa){
+    var m = RICHMENU_TIPS[oa.menu];
+    if (!m) return '';
+    return '<div class="lg-menu"><p style="margin:0;font-size:13.5px;font-weight:700">LINEのメニューの使い方</p>' +
+      '<p style="margin:2px 0 0;font-size:12.5px;color:var(--text-soft)">トーク画面の下に、このメニューが出ます。</p>' +
+      '<img src="richmenu-' + oa.menu + '.jpg" alt="' + escHtml(oa.name) + 'のメニュー" loading="lazy">' +
+      '<ul>' + m.tips.map(function(t){ return '<li>' + escHtml(t) + '</li>'; }).join('') + '</ul>' +
+      (m.warn ? '<div class="lg-warn">' + escHtml(m.warn) + '</div>' : '') + '</div>';
+  }
   function renderLineGuide(cls, memberId){
     var last = null;
     try { last = JSON.parse(localStorage.getItem('educare_last_enroll') || 'null'); } catch (e) {}
@@ -894,7 +918,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
       '<h3>教室のLINEにご登録ください</h3>' +
       '<p class="lg-lead">これからの教室からのご連絡（お知らせ・お休みの連絡など）は、<b>「' + escHtml(oa.name) + '」</b>のLINEで行います。</p>' +
       '<div class="lg-step"><div class="lg-num">1</div><div style="flex:1"><p>友だち追加をしてください</p><a class="lg-btn" href="' + addUrl + '">友だち追加する</a></div></div>' +
-      '<div class="lg-step"><div class="lg-num">2</div><div style="flex:1"><p>追加できたら、下のボタンを押して、そのまま「送信」を押してください（担当がお客さまを確認するためです）</p><a class="lg-btn lg-sub" href="' + msgUrl + '">入会のご連絡を送る</a></div></div>';
+      '<div class="lg-step"><div class="lg-num">2</div><div style="flex:1"><p>追加できたら、下のボタンを押して、そのまま「送信」を押してください（担当がお客さまを確認するためです）</p><a class="lg-btn lg-sub" href="' + msgUrl + '">入会のご連絡を送る</a></div></div>' +
+      menuHtml(oa);
     box.style.display = 'block';
   }
   function initialView(){
