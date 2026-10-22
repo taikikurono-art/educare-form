@@ -154,6 +154,24 @@
     .gi-cta-btn{width:100%;background:linear-gradient(135deg,var(--orange),var(--orange-dark));color:#fff;border:none;padding:16px 24px;border-radius:28px;font-size:16.5px;font-weight:700;font-family:inherit;letter-spacing:0.03em;cursor:pointer;box-shadow:0 8px 20px rgba(253,158,29,0.3);}
     .gi-cta-btn:active{transform:translateY(1px);}
     .gi-cta-link{display:inline-block;margin-top:14px;font-size:13px;color:var(--text-soft);text-decoration:underline;background:none;border:none;font-family:inherit;cursor:pointer;}
+
+    /* ---- 会員規約 ---- */
+    .kiyaku-open{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;margin-bottom:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#FFFDF9;font-family:inherit;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;text-align:left;}
+    .kiyaku-open span{font-size:12.5px;font-weight:500;color:var(--orange-dark);}
+    .kiyaku-open:active{background:var(--cream);}
+    #kiyaku-modal{position:fixed;inset:0;z-index:1000;display:none;background:rgba(74,63,48,0.45);padding:16px;}
+    #kiyaku-modal.open{display:flex;align-items:center;justify-content:center;}
+    .kiyaku-box{background:var(--card);border-radius:var(--radius-lg);width:100%;max-width:480px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.18);}
+    .kiyaku-head{padding:16px 18px 12px;border-bottom:1px solid var(--border);font-weight:700;font-size:16px;text-align:center;}
+    .kiyaku-body{padding:14px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:13.5px;line-height:1.8;}
+    .kiyaku-body h4{margin:14px 0 2px;font-size:14px;}
+    .kiyaku-body h4:first-child{margin-top:0;}
+    .kiyaku-body p{margin:0;}
+    .kiyaku-body .kiyaku-rev{margin-top:16px;font-size:12px;color:var(--text-soft);}
+    .kiyaku-foot{display:flex;gap:10px;padding:12px 18px 16px;border-top:1px solid var(--border);}
+    .kiyaku-foot a,.kiyaku-foot button{flex:1;display:flex;align-items:center;justify-content:center;padding:12px 8px;border-radius:24px;font-family:inherit;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer;}
+    .kiyaku-dl{background:#fff;border:1.5px solid var(--orange);color:var(--orange-dark);}
+    .kiyaku-close{background:linear-gradient(135deg,var(--orange),var(--orange-dark));border:none;color:#fff;}
   </style>
 </head>
 <body>
@@ -458,8 +476,9 @@
     </div>
 
     <div class="card">
+      <button type="button" class="kiyaku-open" data-kiyaku-open>会員規約を読む<span>開く ›</span></button>
       <div class="field">
-        <label><input type="checkbox" id="e-agree" required> 会員規約に同意します *</label>
+        <label><input type="checkbox" id="e-agree" required> 会員規約を確認し、同意します *</label>
       </div>
     </div>
 
@@ -1032,6 +1051,63 @@ document.addEventListener('DOMContentLoaded', initLiff);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<!-- ===== 会員規約 ===== -->
+<div id="kiyaku-modal" role="dialog" aria-modal="true" aria-labelledby="kiyaku-title">
+  <div class="kiyaku-box">
+    <div class="kiyaku-head" id="kiyaku-title">子育てサポートeducare 会員規約</div>
+    <div class="kiyaku-body">
+      <h4>第1条　名称及び所在地</h4>
+      <p>「子育てサポートeducare」（以下「当団体」という）と称し、所在を愛知県瀬戸市八王子町30-9に置く。</p>
+      <h4>第2条　趣旨</h4>
+      <p>当団体は、子ども大人に関わらず参加者全員があなたらしくあるための場所を作り、常に「あなたを引き出す」ことを目的とする。</p>
+      <h4>第3条　入会手続き</h4>
+      <p>入会手続きとして、規約を承諾同意し入会フォームを送信するとともに、所定の方法で入会諸費用を納めることとする。</p>
+      <h4>第4条　活動期間</h4>
+      <p>当団体の活動期間は、原則として、毎年4月1日から翌年3月31日の1年間とする。</p>
+      <h4>第5条　会費</h4>
+      <p>会費は別に定める入会金、月会費、及びその他の諸費用を所定の方法で納入しなければならない。</p>
+      <h4>第6条　退会</h4>
+      <p>当団体を退会する場合には、退会する月の前月15日までに申し出なければならない。</p>
+      <h4>第7条　保険</h4>
+      <p>入会者は入会と同時に、当団体が指定する損害保険に全員加入する。加入の手続きは事務局が行う。</p>
+      <h4>第8条　負傷時の処置と免責</h4>
+      <p>会員が活動中、また当団体の主催する行事で負傷した場合には、スタッフが応急処置を施す。ただし、その後の治療、通院、入院については、損害保険適応内とする。</p>
+      <h4>第9条　休講、閉鎖</h4>
+      <p>当団体は天変地異、社会情勢の変化、その他通常の活動継続が困難となる事由が生じた時は、無条件に休講、もしくは閉鎖することができる。</p>
+      <h4>第10条　写真・映像の使用</h4>
+      <p>当団体の活動風景を撮影した写真及び映像を、当団体が運営するホームページ、SNS、及び配布物、その他チラシなどに使用する。掲載不可な場合にはスタッフに事前に連絡する。</p>
+      <h4>第11条　附則</h4>
+      <p>当団体は、必要に応じ随時、本規約を改定することができるとともに、本規約に関する事項については細則を定めることができる。</p>
+      <h4>第12条　発効</h4>
+      <p>この規約は2018年7月1日より発効する。</p>
+      <p class="kiyaku-rev">2018年12月23日 一部改訂／2020年12月03日 一部改訂／2021年01月23日 一部改訂／2022年11月30日 一部改訂／2026年03月13日 一部改訂</p>
+    </div>
+    <div class="kiyaku-foot">
+      <a class="kiyaku-dl" href="kiyaku.pdf" download="educare会員規約.pdf" id="kiyaku-dl">PDFで保存</a>
+      <button type="button" class="kiyaku-close" id="kiyaku-close">閉じる</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var modal = document.getElementById('kiyaku-modal');
+  function open(){ modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function close(){ modal.classList.remove('open'); document.body.style.overflow = ''; }
+  document.querySelectorAll('[data-kiyaku-open]').forEach(function(b){ b.addEventListener('click', open); });
+  document.getElementById('kiyaku-close').addEventListener('click', close);
+  modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+  // LINEアプリ内ではダウンロードできないことがあるので、外部ブラウザでPDFを開く
+  document.getElementById('kiyaku-dl').addEventListener('click', function(e){
+    try {
+      if (window.liff && liff.isInClient && liff.isInClient()) {
+        e.preventDefault();
+        liff.openWindow({ url: new URL('kiyaku.pdf', location.href).href, external: true });
+      }
+    } catch (err) {}
+  });
 })();
 </script>
 </body>
