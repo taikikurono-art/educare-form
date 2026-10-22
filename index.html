@@ -506,7 +506,21 @@
 
     <div class="card">
       <p class="card-title">割引について</p>
-      <div class="note">兄弟姉妹割引・複数教室割引（各 −500円／月）は、登録内容から自動で確認します。当てはまりそうな場合は、お支払いの前に確認の画面が出ます。ごきょうだいが別のLINE・電話番号で登録している場合は、お申込み後にLINEでお知らせください。</div>
+      <div class="note" style="margin-top:0">兄弟姉妹割引・複数教室割引（各 −500円／月）は、同じLINE・同じ電話番号のご登録から自動で確認します。</div>
+      <div class="pay-options" style="margin-top:10px">
+        <label><input type="checkbox" id="e-claimSib"> JUMP UPに在籍中のごきょうだいがいる（別のLINE・電話番号で登録している場合）</label>
+      </div>
+      <div id="e-claimBox" style="display:none">
+        <div class="field">
+          <label for="e-claimName">ごきょうだいのお名前（ふりがなでも可）</label>
+          <input type="text" id="e-claimName" placeholder="例：じゃんぷ たろう">
+        </div>
+        <div class="field">
+          <label for="e-claimBirthday">ごきょうだいの生年月日</label>
+          <input type="date" id="e-claimBirthday">
+        </div>
+        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は、担当が確認のうえ翌月分から割引します。</div>
+      </div>
     </div>
 
     <div class="card">
@@ -593,7 +607,21 @@
 
     <div class="card">
       <p class="card-title">割引について</p>
-      <div class="note">兄弟姉妹割引・複数教室割引（各 −500円／月）は、登録内容から自動で確認します。当てはまりそうな場合は、登録の前に確認の画面が出ます。ごきょうだいが別のLINE・電話番号で登録している場合は、LINEでお知らせください。</div>
+      <div class="note" style="margin-top:0">兄弟姉妹割引・複数教室割引（各 −500円／月）は、同じLINE・同じ電話番号のご登録から自動で確認します。</div>
+      <div class="pay-options" style="margin-top:10px">
+        <label><input type="checkbox" id="m-claimSib"> JUMP UPに在籍中のごきょうだいがいる（別のLINE・電話番号で登録している場合）</label>
+      </div>
+      <div id="m-claimBox" style="display:none">
+        <div class="field">
+          <label for="m-claimName">ごきょうだいのお名前（ふりがなでも可）</label>
+          <input type="text" id="m-claimName" placeholder="例：じゃんぷ たろう">
+        </div>
+        <div class="field">
+          <label for="m-claimBirthday">ごきょうだいの生年月日</label>
+          <input type="date" id="m-claimBirthday">
+        </div>
+        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は、担当が確認のうえ翌月分から割引します。</div>
+      </div>
     </div>
 
     <button type="submit">登録する</button>
@@ -699,9 +727,14 @@ function confirmDiscount(payload, done){
   gasCall('discountCheck', [payload]).then(function(r){
     hideBusy();
     if (!r || !r.eligible) return go();
-    var sib = (r.siblings || []), phoneOnly = r.phoneOnly || 0, multi = (r.multi || []);
-    if (!sib.length && !phoneOnly && !multi.length) return go();
+    var sib = (r.siblings || []), phoneOnly = r.phoneOnly || 0, multi = (r.multi || []), claim = r.claim;
+    if (!sib.length && !phoneOnly && !multi.length && !claim) return go();
     var unit = r.unit || 500, html = '';
+    if (claim && claim.found) {
+      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">ごきょうだいの<b>' + escHtml(claim.name) + 'さん' + (claim.label ? '（' + escHtml(claim.label) + '）' : '') + '</b>の在籍を確認しました。<br>兄弟姉妹割引 −' + unit + '円／月を付けます。</p>';
+    } else if (claim) {
+      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">入力されたごきょうだいの在籍を、名簿で確認できませんでした。<br>担当が確認して、確認でき次第、翌月分の月謝から割引します（今回のお支払いには付きません）。</p>';
+    }
     if (sib.length || phoneOnly) {
       var who = sib.map(function(x){ return '<li>' + escHtml(x.name) + 'さん' + (x.label ? '（' + escHtml(x.label) + '）' : '') + '</li>'; }).join('');
       if (!who) who = '<li>この電話番号で登録済みのお子さま ' + phoneOnly + '名</li>';
@@ -737,6 +770,17 @@ function confirmDiscount(payload, done){
     };
   }).catch(function(){ go(); });
 }
+document.addEventListener('DOMContentLoaded', function(){
+  ['e','m'].forEach(function(px){
+    var cb = document.getElementById(px + '-claimSib'); if (!cb) return;
+    cb.addEventListener('change', function(){
+      var on = cb.checked;
+      document.getElementById(px + '-claimBox').style.display = on ? '' : 'none';
+      document.getElementById(px + '-claimName').required = on;
+      document.getElementById(px + '-claimBirthday').required = on;
+    });
+  });
+});
 function showBusy(msg){ var b = document.getElementById('busy'); if (!b) return; document.getElementById('busyMsg').textContent = msg || '処理しています…'; b.classList.add('on'); }
 function hideBusy(){ var b = document.getElementById('busy'); if (b) b.classList.remove('on'); }
 function yen(n){ return (n < 0 ? '−' : '') + Math.abs(Number(n) || 0).toLocaleString('ja-JP') + '円'; }
@@ -993,6 +1037,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
     ['parentName','parentTel','email','childName','childKana','grade','birthday','emg1Name','emg1Rel','emg1Tel','emg2Name','emg2Rel','emg2Tel']
       .forEach(function(k){ setVal('e-' + k, p[k]); });
     setRadio('e-gender', p.gender); setRadio('e-payMethod', p.payMethod);
+    var cs = document.getElementById('e-claimSib');
+    if (cs) { cs.checked = !!p.claimName; cs.dispatchEvent(new Event('change')); setVal('e-claimName', p.claimName || ''); setVal('e-claimBirthday', p.claimBirthday || ''); }
     window.__pendingStartDate = p.startDate || '';
     var prog = document.getElementById('e-program');
     prog.value = p.program || '';
@@ -1223,6 +1269,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         payMethod: (document.querySelector('input[name=m-payMethod]:checked') || {}).value || '',
         hasSibling: false,
         hasMultiClass: false,
+        claimName: document.getElementById('m-claimSib').checked ? document.getElementById('m-claimName').value.trim() : '',
+        claimBirthday: document.getElementById('m-claimSib').checked ? document.getElementById('m-claimBirthday').value : '',
         lineUserId: lp ? lp.userId : '',
         lineName: lp ? lp.displayName : ''
       };
@@ -1293,6 +1341,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         payMethod: (document.querySelector('input[name=e-payMethod]:checked') || {}).value || '',
         hasSibling: false,
         hasMultiClass: false,
+        claimName: document.getElementById('e-claimSib').checked ? document.getElementById('e-claimName').value.trim() : '',
+        claimBirthday: document.getElementById('e-claimSib').checked ? document.getElementById('e-claimBirthday').value : '',
         replaceMemberId: window.__replaceMemberId || '',
         lineUserId: lp ? lp.userId : '',
         lineName: lp ? lp.displayName : ''
