@@ -159,8 +159,8 @@
     .kiyaku-open{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;margin-bottom:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#FFFDF9;font-family:inherit;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;text-align:left;}
     .kiyaku-open span{font-size:12.5px;font-weight:500;color:var(--orange-dark);}
     .kiyaku-open:active{background:var(--cream);}
-    #kiyaku-modal{position:fixed;inset:0;z-index:1000;display:none;background:rgba(74,63,48,0.45);padding:16px;}
-    #kiyaku-modal.open{display:flex;align-items:center;justify-content:center;}
+    .doc-modal{position:fixed;inset:0;z-index:1000;display:none;background:rgba(74,63,48,0.45);padding:16px;}
+    .doc-modal.open{display:flex;align-items:center;justify-content:center;}
     .kiyaku-box{background:var(--card);border-radius:var(--radius-lg);width:100%;max-width:480px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.18);}
     .kiyaku-head{padding:16px 18px 12px;border-bottom:1px solid var(--border);font-weight:700;font-size:16px;text-align:center;}
     .kiyaku-body{padding:14px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:13.5px;line-height:1.8;}
@@ -171,6 +171,9 @@
     .kiyaku-foot{display:flex;gap:10px;padding:12px 18px 16px;border-top:1px solid var(--border);}
     .kiyaku-foot a,.kiyaku-foot button{flex:1;display:flex;align-items:center;justify-content:center;padding:12px 8px;border-radius:24px;font-family:inherit;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer;}
     .kiyaku-dl{background:#fff;border:1.5px solid var(--orange);color:var(--orange-dark);}
+    .fee-table{width:100%;border-collapse:collapse;margin:4px 0 2px;font-size:13.5px;}
+    .fee-table th,.fee-table td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:500;}
+    .fee-table td{text-align:right;font-weight:700;white-space:nowrap;}
     .kiyaku-close{background:linear-gradient(135deg,var(--orange),var(--orange-dark));border:none;color:#fff;}
   </style>
 </head>
@@ -476,9 +479,10 @@
     </div>
 
     <div class="card">
-      <button type="button" class="kiyaku-open" data-kiyaku-open>会員規約を読む<span>開く ›</span></button>
+      <button type="button" class="kiyaku-open" data-modal-open="ryokin-modal">レッスン・会費のご案内<span>開く ›</span></button>
+      <button type="button" class="kiyaku-open" data-modal-open="kiyaku-modal">会員規約を読む<span>開く ›</span></button>
       <div class="field">
-        <label><input type="checkbox" id="e-agree" required> 会員規約を確認し、同意します *</label>
+        <label><input type="checkbox" id="e-agree" required> レッスン・会費のご案内と会員規約を確認し、同意します *</label>
       </div>
     </div>
 
@@ -1054,8 +1058,59 @@ document.addEventListener('DOMContentLoaded', initLiff);
 })();
 </script>
 
+<!-- ===== レッスン・会費のご案内 ===== -->
+<div id="ryokin-modal" class="doc-modal" role="dialog" aria-modal="true" aria-labelledby="ryokin-title">
+  <div class="kiyaku-box">
+    <div class="kiyaku-head" id="ryokin-title">JUMP UP レッスン・会費のご案内</div>
+    <div class="kiyaku-body">
+<h4>入会金</h4>
+<p>3,000円（税込）。初年度のスポーツ保険料（1,000円）を含みます。入会手続きの際に、お支払い画面でお支払いください。</p>
+
+<h4>月会費（税込）</h4>
+<table class="fee-table">
+<tr><th>春日井 体操</th><td>5,500円</td></tr>
+<tr><th>尾頭橋 体操</th><td>5,500円</td></tr>
+<tr><th>鶴舞 体操</th><td>5,500円</td></tr>
+<tr><th>ささしま 体操</th><td>5,500円</td></tr>
+<tr><th>ささしま ダンス</th><td>5,000円</td></tr>
+<tr><th>志賀 体操</th><td>5,500円</td></tr>
+<tr><th>志賀 ダンス</th><td>4,500円</td></tr>
+<tr><th>ココロネ ダンス</th><td>5,500円</td></tr>
+<tr><th>せと</th><td>1回500円（当日現金）</td></tr>
+</table>
+
+<h4>割引</h4>
+<p>・兄弟姉妹割引：ごきょうだいで通う場合、お一人につき月500円引き（2人で合計1,000円引き）</p>
+<p>・複数教室割引：同じお子さまが複数の教室に通う場合、1教室につき月500円引き</p>
+<p>・両方に当てはまる場合は併用できます。ご登録内容から自動で反映されます。</p>
+
+<h4>月会費のお支払い方法</h4>
+<p>次のどちらかをお選びください。</p>
+<p>・クレジットカード：入会時にカードを登録すると、その後の月会費は毎月自動で引き落とされます。毎月のお手続きは不要です。</p>
+<p>・銀行振込：毎月、振込先をLINEでご案内します。期日までにお振込みください。</p>
+<p>※お支払いいただいた入会金・月会費は、返金いたしかねますのでご了承ください。</p>
+
+<h4>休講・振替</h4>
+<p>天候や講師の都合で休講になった場合は、振替日を設定します。振替が難しい場合は、休講分を月会費から差し引きます。せと教室は振替がありません。</p>
+
+<h4>スポーツ保険</h4>
+<p>入会時にスポーツ保険に加入します。初年度の保険料1,000円は入会金に含まれます。毎年4月に更新が必要で、次年度の保険料（年度更新料1,000円）は年度末にご案内します。</p>
+
+<h4>欠席・遅刻</h4>
+<p>レッスンを欠席・遅刻する場合は、LINEでご連絡ください。</p>
+
+<h4>休会・退会</h4>
+<p>・3か月以上休会される場合は、再開時に改めて入会金が必要です（やむを得ない事由を除く）。</p>
+<p>・退会される場合は、退会する月の前月15日までにLINEでお申し出ください（会員規約 第6条）。</p>
+    </div>
+    <div class="kiyaku-foot">
+      <a class="kiyaku-dl" href="ryokin.pdf" download="JUMPUP_レッスン・会費のご案内.pdf" data-pdf>PDFで保存</a>
+      <button type="button" class="kiyaku-close" data-modal-close>閉じる</button>
+    </div>
+  </div>
+</div>
 <!-- ===== 会員規約 ===== -->
-<div id="kiyaku-modal" role="dialog" aria-modal="true" aria-labelledby="kiyaku-title">
+<div id="kiyaku-modal" class="doc-modal" role="dialog" aria-modal="true" aria-labelledby="kiyaku-title">
   <div class="kiyaku-box">
     <div class="kiyaku-head" id="kiyaku-title">子育てサポートeducare 会員規約</div>
     <div class="kiyaku-body">
@@ -1086,27 +1141,30 @@ document.addEventListener('DOMContentLoaded', initLiff);
       <p class="kiyaku-rev">2018年12月23日 一部改訂／2020年12月03日 一部改訂／2021年01月23日 一部改訂／2022年11月30日 一部改訂／2026年03月13日 一部改訂</p>
     </div>
     <div class="kiyaku-foot">
-      <a class="kiyaku-dl" href="kiyaku.pdf" download="educare会員規約.pdf" id="kiyaku-dl">PDFで保存</a>
-      <button type="button" class="kiyaku-close" id="kiyaku-close">閉じる</button>
+      <a class="kiyaku-dl" href="kiyaku.pdf" download="educare会員規約.pdf" data-pdf>PDFで保存</a>
+      <button type="button" class="kiyaku-close" data-modal-close>閉じる</button>
     </div>
   </div>
 </div>
 <script>
 (function(){
-  var modal = document.getElementById('kiyaku-modal');
-  function open(){ modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
-  function close(){ modal.classList.remove('open'); document.body.style.overflow = ''; }
-  document.querySelectorAll('[data-kiyaku-open]').forEach(function(b){ b.addEventListener('click', open); });
-  document.getElementById('kiyaku-close').addEventListener('click', close);
-  modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+  function open(id){ var m=document.getElementById(id); if(!m) return; m.classList.add('open'); m.querySelector('.kiyaku-body').scrollTop=0; document.body.style.overflow='hidden'; }
+  function close(m){ m.classList.remove('open'); document.body.style.overflow=''; }
+  document.querySelectorAll('[data-modal-open]').forEach(function(b){ b.addEventListener('click', function(){ open(b.getAttribute('data-modal-open')); }); });
+  document.querySelectorAll('.doc-modal').forEach(function(m){
+    m.addEventListener('click', function(e){ if (e.target === m) close(m); });
+    m.querySelector('[data-modal-close]').addEventListener('click', function(){ close(m); });
+  });
   // LINEアプリ内ではダウンロードできないことがあるので、外部ブラウザでPDFを開く
-  document.getElementById('kiyaku-dl').addEventListener('click', function(e){
-    try {
-      if (window.liff && liff.isInClient && liff.isInClient()) {
-        e.preventDefault();
-        liff.openWindow({ url: new URL('kiyaku.pdf', location.href).href, external: true });
-      }
-    } catch (err) {}
+  document.querySelectorAll('[data-pdf]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      try {
+        if (window.liff && liff.isInClient && liff.isInClient()) {
+          e.preventDefault();
+          liff.openWindow({ url: new URL(a.getAttribute('href'), location.href).href, external: true });
+        }
+      } catch (err) {}
+    });
   });
 })();
 </script>
