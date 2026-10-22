@@ -519,7 +519,7 @@
           <label for="e-claimBirthday">ごきょうだいの生年月日</label>
           <input type="date" id="e-claimBirthday">
         </div>
-        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は、担当が確認のうえ翌月分から割引します。</div>
+        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は担当が確認し、確認でき次第、それまでの割引分も含めて次回の月謝から差し引きます。</div>
       </div>
     </div>
 
@@ -620,7 +620,7 @@
           <label for="m-claimBirthday">ごきょうだいの生年月日</label>
           <input type="date" id="m-claimBirthday">
         </div>
-        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は、担当が確認のうえ翌月分から割引します。</div>
+        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は担当が確認し、確認でき次第、それまでの割引分も含めて次回の月謝から差し引きます。</div>
       </div>
     </div>
 
@@ -733,7 +733,7 @@ function confirmDiscount(payload, done){
     if (claim && claim.found) {
       html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">ごきょうだいの<b>' + escHtml(claim.name) + 'さん' + (claim.label ? '（' + escHtml(claim.label) + '）' : '') + '</b>の在籍を確認しました。<br>兄弟姉妹割引 −' + unit + '円／月を付けます。</p>';
     } else if (claim) {
-      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">入力されたごきょうだいの在籍を、名簿で確認できませんでした。<br>担当が確認して、確認でき次第、翌月分の月謝から割引します（今回のお支払いには付きません）。</p>';
+      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">入力されたごきょうだいの在籍を、名簿で確認できませんでした。<br>今回のお支払いは割引なしの金額になりますが、担当が確認でき次第、今回の割引分（500円）も含めて次回の月謝から差し引きます。</p>';
     }
     if (sib.length || phoneOnly) {
       var who = sib.map(function(x){ return '<li>' + escHtml(x.name) + 'さん' + (x.label ? '（' + escHtml(x.label) + '）' : '') + '</li>'; }).join('');
