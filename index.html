@@ -519,7 +519,7 @@
           <label for="e-claimBirthday">ごきょうだいの生年月日</label>
           <input type="date" id="e-claimBirthday">
         </div>
-        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は担当が確認し、確認でき次第、それまでの割引分も含めて次回の月謝から差し引きます。</div>
+        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。すぐに確認できない場合も、確認でき次第、今回の割引分も含めて次回の月謝から差し引きます。</div>
       </div>
     </div>
 
@@ -620,7 +620,7 @@
           <label for="m-claimBirthday">ごきょうだいの生年月日</label>
           <input type="date" id="m-claimBirthday">
         </div>
-        <div class="note">名前と生年月日で在籍を確認できたら、その場で割引を付けます。確認できなかった場合は担当が確認し、確認でき次第、それまでの割引分も含めて次回の月謝から差し引きます。</div>
+        <div class="note">ごきょうだいがまだこの登録をしていなくても、チェックしてください。ごきょうだいの登録が済むと、2人とも自動で兄弟姉妹割引（各 −500円／月）が付きます。それまでに割引なしで払った分があれば、次回の月謝から差し引きます。</div>
       </div>
     </div>
 
@@ -732,8 +732,10 @@ function confirmDiscount(payload, done){
     var unit = r.unit || 500, html = '';
     if (claim && claim.found) {
       html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">ごきょうだいの<b>' + escHtml(claim.name) + 'さん' + (claim.label ? '（' + escHtml(claim.label) + '）' : '') + '</b>の在籍を確認しました。<br>兄弟姉妹割引 −' + unit + '円／月を付けます。</p>';
+    } else if (claim && !payload.startDate) {
+      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">ごきょうだいは、まだこの登録をされていないようです。<br>ごきょうだいの登録が済むと、<b>2人とも自動で兄弟姉妹割引（各 −' + unit + '円／月）</b>が付きます。それまでに割引なしで払った分があれば、次回の月謝から差し引きますので、このままお進みください。</p>';
     } else if (claim) {
-      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">入力されたごきょうだいの在籍を、名簿で確認できませんでした。<br>今回のお支払いは割引なしの金額になりますが、担当が確認でき次第、今回の割引分（500円）も含めて次回の月謝から差し引きます。</p>';
+      html += '<p style="background:var(--cream);border-radius:10px;padding:10px 12px">ごきょうだいの在籍を確認しています。<br>確認でき次第、<b>兄弟姉妹割引（−' + unit + '円／月）</b>が付き、今回のお支払いの割引分も次回の月謝から差し引きますので、このままお進みください。</p>';
     }
     if (sib.length || phoneOnly) {
       var who = sib.map(function(x){ return '<li>' + escHtml(x.name) + 'さん' + (x.label ? '（' + escHtml(x.label) + '）' : '') + '</li>'; }).join('');
