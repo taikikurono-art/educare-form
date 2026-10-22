@@ -698,12 +698,24 @@ function gasCall(fn, args) {
     return fetch(GAS_URL + '?action=liffId' + bust).then(function(r){ return r.json(); }).then(function(o){ return (o && o.liffId) || ''; });
   }
   if (fn === 'submitTrial' || fn === 'submitEnrollment' || fn === 'registerExisting' || fn === 'discountCheck' || fn === 'resumeCheckout') {
-    return fetch(GAS_URL + '?action=' + fn, { method:'POST', body: JSON.stringify(args[0] || {}) })
+    // 受付番号（reqId）を付けて送る。iPhoneのLINEなどで返事だけ受け取れなかったときは、
+    // 受付番号で結果を取りに行く（同じ申込みを二重に送らない／個人情報はURLに載せない）
+    var body = Object.assign({}, args[0] || {});
+    if (!body.reqId) body.reqId = 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    function check(o){ if (o && o.ok === false && o.error) throw new Error(o.error); return o; }
+    function pollResult(left){
+      return new Promise(function(res){ setTimeout(res, 1500); })
+        .then(function(){ return fetch(GAS_URL + '?action=result&reqId=' + encodeURIComponent(body.reqId) + '&_=' + Date.now()); })
+        .then(function(r){ return r.json(); })
+        .then(function(o){
+          if (o && o.pending) { if (left > 0) return pollResult(left - 1); throw new Error('通信がうまくいきませんでした。電波のよい場所で、もう一度お試しください。'); }
+          return o;
+        }, function(err){ if (left > 0) return pollResult(left - 1); throw err; });
+    }
+    return fetch(GAS_URL + '?action=' + fn, { method:'POST', body: JSON.stringify(body) })
       .then(function(r){ return r.json(); })
-      .then(function(o){
-        if (o && o.ok === false && o.error) throw new Error(o.error);
-        return o;
-      });
+      .catch(function(){ return pollResult(20); })
+      .then(check);
   }
   return Promise.reject(new Error('unknown function: ' + fn));
 }
