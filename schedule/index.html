@@ -379,7 +379,7 @@ function showApp(){
 }
 
 async function load(){
-  setSource('', '読み込み中…');
+  setSource('', '読み込み中…（10秒ほどかかることがあります）');
   try{
     const j = await api('schedData', {token: memToken});
     if (!j.ok){ setToken(''); memToken=''; showLogin(j.error==='auth'?'もう一度ログインしてください':''); return; }
@@ -394,12 +394,12 @@ async function load(){
 
 document.getElementById('loginForm').addEventListener('submit', async ev=>{
   ev.preventDefault();
-  const btn=document.getElementById('loginBtn'); btn.disabled=true; btn.textContent='確認中…';
+  const btn=document.getElementById('loginBtn'); btn.disabled=true; btn.textContent='確認しています…';
   document.getElementById('loginErr').textContent='';
   try{
     const j = await api('schedLogin', {id:document.getElementById('lid').value.trim(), pass:document.getElementById('lpw').value});
-    if (j.ok){ memToken=j.token; setToken(j.token); document.getElementById('lpw').value=''; await load(); }
-    else document.getElementById('loginErr').textContent = j.error==='locked' ? '何度も間違えたため10分間ログインできません' : 'IDかパスワードが違います';
+    if (j.ok){ memToken=j.token; setToken(j.token); document.getElementById('lpw').value=''; role=j.role; myName=j.name; showApp(); document.getElementById('weekView').innerHTML='<div class="day" style="grid-column:1/-1"><div class="empty" style="color:var(--muted);font-size:14px">ログインしました。予定を読み込んでいます…（10秒ほどかかることがあります）</div></div>'; await load(); }
+    else document.getElementById('loginErr').textContent = j.error==='locked' ? '何度も間違えたため10分間ログインできません' : 'IDかパスワードが違います（すべて半角・小文字です）';
   }catch(e){ document.getElementById('loginErr').textContent='通信できませんでした'; }
   btn.disabled=false; btn.textContent='ログイン';
 });
