@@ -686,9 +686,42 @@ window.google = { script: { run: (function(){
 let LIFF_ID = '';
 let lineProfile = null;
 let allClasses = [];
+const LIFF_ID_DEFAULT = '2011170601-J2uFdF1V';
+
+// 教室一覧は、ページを開いた瞬間から読み込み開始（LINEログインと同時に進める）。失敗したら1回だけやり直す
+window.classesReady = (function load(retry){
+  return gasCall('getClasses', []).then(function(c){
+    if (!Array.isArray(c)) throw new Error('bad classes');
+    return c;
+  }).catch(function(e){ return retry > 0 ? load(retry - 1) : []; });
+})(1).then(function(c){ allClasses = c; return c; });
+
+// プログラムを選んだ時点で教室一覧がまだ届いていなければ「読み込み中」を出し、届いたら選び直す
+function fillClassSelect(programSelect, classSelect, fmt){
+  classSelect.innerHTML = '';
+  if (!allClasses.length) {
+    classSelect.innerHTML = '<option value="">読み込み中…</option>';
+    window.classesReady.then(function(){
+      if (allClasses.length) programSelect.dispatchEvent(new Event('change'));
+      else classSelect.innerHTML = '<option value="">読み込めませんでした。ページを開き直してください</option>';
+    });
+    return false;
+  }
+  var filtered = allClasses.filter(function(c){ return c.program === programSelect.value; });
+  if (filtered.length === 0) { classSelect.innerHTML = '<option value="">該当クラスがありません</option>'; return false; }
+  classSelect.innerHTML = '<option value="">選択してください</option>';
+  filtered.forEach(function(c){
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = fmt(c);
+    classSelect.appendChild(opt);
+  });
+  return true;
+}
 
 async function initLiff() {
-  try { LIFF_ID = await gasCall('getLiffId', []); } catch (e) { LIFF_ID = ''; }
+  LIFF_ID = LIFF_ID_DEFAULT;   // 固定値（毎回サーバーに聞きに行かない＝表示が速くなる）
+  if (!LIFF_ID) { try { LIFF_ID = await gasCall('getLiffId', []); } catch (e) { LIFF_ID = ''; } }
   if (!LIFF_ID) { onReady(); return; }
   var dbg = document.getElementById('liff-debug');
   function log(msg) { if (dbg) { dbg.textContent += msg + ' / '; } }
@@ -713,28 +746,22 @@ async function initLiff() {
   if (!forced) { clearTimeout(timer); onReady(); }
 }
 
+// LINEログインが終わり、教室一覧も届いてから画面を出す（最大20秒待つ）
 function onReady() {
-  document.getElementById('step-loading').style.display = 'none';
-  document.getElementById('trial-form').style.display = 'block';
-  google.script.run.withSuccessHandler(function(classes) {
-    allClasses = classes || [];
-  }).getClasses();
+  if (onReady.done) return; onReady.done = true;
+  var revealed = false;
+  function reveal(){
+    if (revealed) return; revealed = true;
+    document.getElementById('step-loading').style.display = 'none';
+    document.getElementById('trial-form').style.display = 'block';
+  }
+  var t = setTimeout(reveal, 20000);
+  window.classesReady.then(function(){ clearTimeout(t); reveal(); });
 }
 
 document.getElementById('program').addEventListener('change', function() {
-  const select = document.getElementById('classId');
-  select.innerHTML = '';
-  const filtered = allClasses.filter(c => c.program === this.value);
-  if (filtered.length === 0) {
-    select.innerHTML = '<option value="">該当クラスがありません</option>';
-    return;
-  }
-  select.innerHTML = '<option value="">選択してください</option>';
-  filtered.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.id;
-    opt.textContent = '【' + c.base + '】' + c.name + ' (' + c.weekday + ' ' + c.start + (c.end ? '～'+c.end : '') + ') ';
-    select.appendChild(opt);
+  fillClassSelect(this, document.getElementById('classId'), function(c){
+    return '【' + c.base + '】' + c.name + ' (' + c.weekday + ' ' + c.start + (c.end ? '～'+c.end : '') + ') ';
   });
 });
 
@@ -847,26 +874,10 @@ document.addEventListener('DOMContentLoaded', initLiff);
     document.getElementById('btn-enroll').addEventListener('click', function(){ showOnly('enroll-form'); loadEnrollClasses(); });
   });
 
-  var enrollAllClasses = [];
-  function loadEnrollClasses(){
-    google.script.run.withSuccessHandler(function(classes){
-      enrollAllClasses = classes || [];
-    }).getClasses();
-  }
+  function loadEnrollClasses(){ /* 教室一覧はページ読み込み時に取得済み（window.classesReady） */ }
   document.getElementById('e-program').addEventListener('change', function(){
-    var select = document.getElementById('e-classId');
-    select.innerHTML = '';
-    var filtered = enrollAllClasses.filter(function(c){ return c.program === this.value; }, this);
-    if (filtered.length === 0) {
-      select.innerHTML = '<option value="">該当クラスがありません</option>';
-      return;
-    }
-    select.innerHTML = '<option value="">選択してください</option>';
-    filtered.forEach(function(c){
-      var opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
-      select.appendChild(opt);
+    fillClassSelect(this, document.getElementById('e-classId'), function(c){
+      return '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
     });
     // クラスが変わったら入会希望日もリセット
     setEnrollStartDates(null);
@@ -917,21 +928,10 @@ document.addEventListener('DOMContentLoaded', initLiff);
     }).getEnrollStartDates(this.value);
   });
 
-  var memberAllClasses = [];
-  function loadMemberClasses(){
-    google.script.run.withSuccessHandler(function(classes){ memberAllClasses = classes || []; }).getClasses();
-  }
+  function loadMemberClasses(){ /* 教室一覧はページ読み込み時に取得済み（window.classesReady） */ }
   document.getElementById('m-program').addEventListener('change', function(){
-    var select = document.getElementById('m-classId');
-    select.innerHTML = '';
-    var filtered = memberAllClasses.filter(function(c){ return c.program === this.value; }, this);
-    if (filtered.length === 0) { select.innerHTML = '<option value="">該当クラスがありません</option>'; return; }
-    select.innerHTML = '<option value="">選択してください</option>';
-    filtered.forEach(function(c){
-      var opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
-      select.appendChild(opt);
+    fillClassSelect(this, document.getElementById('m-classId'), function(c){
+      return '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
     });
   });
   document.getElementById('member-form').addEventListener('submit', function(e){
