@@ -926,7 +926,16 @@ document.addEventListener('DOMContentLoaded', initLiff);
   }
   function initialView(){
     var enrolled = getParam('enrolled'), registered = getParam('registered');
-    if (enrolled === 'success') return { view:'step-result', title:'お支払いが完了しました。', msg:'ご入会ありがとうございます。最後に、教室のLINEへのご登録をお願いします。' };
+    if (enrolled === 'success') {
+      var sm = (getParam('sm') || '').match(/^(\d{4})-(\d{1,2})$/), pm = getParam('pm'), feeMsg = '';
+      var n = new Date(), smo = sm ? +sm[2] : 0, first = sm && ((+sm[1])*12 + smo) <= (n.getFullYear()*12 + n.getMonth()+1) ? (smo % 12) + 1 : smo;
+      if (sm && pm === 'card') {
+        feeMsg = '月謝は' + first + '月1日から、今回お支払いのカードで毎月1日に自動で引き落とされます（予約済みなので、毎月のお手続きは不要です）。';
+      } else if (sm && pm === 'bank_transfer') {
+        feeMsg = '月謝のお支払い案内は、' + first + '月から毎月1日にLINEでお送りします。';
+      }
+      return { view:'step-result', title:'お支払いが完了しました。', msg:'ご入会ありがとうございます。' + feeMsg + '最後に、教室のLINEへのご登録をお願いします。' };
+    }
     if (enrolled === 'cancel') return { view:'step-result', title:'お支払いは完了していません。', msg:'お申込み内容は受け付けています。お支払い方法については、担当よりLINEでご連絡いたします。' };
     if (registered === 'success') return { view:'step-result', title:'カードのご登録が完了しました。', msg:'次回から月謝は自動でお支払いいただけます。ありがとうございました。' };
     if (registered === 'cancel') return { view:'step-result', title:'カードの登録は完了していません。', msg:'お手数ですが、もう一度LINEのリンクからご登録ください。' };
@@ -1022,10 +1031,10 @@ document.addEventListener('DOMContentLoaded', initLiff);
     var html;
     if (diff <= 0) {
       html = '<b>' + (now.getMonth()+1) + '月スタート</b>：入会時のお支払いは<b>入会金＋' + (now.getMonth()+1) + '月分の月謝</b>です（月の途中からでも日割りはありません）。<br>' +
-        (card ? nextMo + '月からは、毎月1日にカードで自動引き落としになります。' : nextMo + '月からは、毎月1日にLINEでお支払いをご案内します。');
+        (card ? 'お支払いに使ったカードが登録され、' + nextMo + '月からの月謝は<b>毎月1日に自動で引き落とされます</b>（入会と同時に予約されるので、毎月のお手続きは不要です）。' : nextMo + '月からは、毎月1日にLINEでお支払いをご案内します。');
     } else {
       html = '<b>' + mo + '月スタート</b>：入会時のお支払いは<b>入会金のみ</b>です。<br>' +
-        (card ? '月謝は' + mo + '月1日から、毎月1日にカードで自動引き落としになります。' : '月謝は' + mo + '月1日から、毎月1日にLINEでお支払いをご案内します。');
+        (card ? 'お支払いに使ったカードが登録され、月謝は<b>' + mo + '月1日から毎月1日に自動で引き落とされます</b>（入会と同時に予約されるので、毎月のお手続きは不要です）。' : '月謝は' + mo + '月1日から、毎月1日にLINEでお支払いをご案内します。');
     }
     feeNote.innerHTML = html; feeNote.style.display = '';
   }
