@@ -602,7 +602,7 @@
         <label><input type="radio" name="m-payMethod" value="card" required> クレジットカード（自動引き落とし）</label>
         <label><input type="radio" name="m-payMethod" value="bank_transfer"> 銀行振込（毎月LINEでご案内）</label>
       </div>
-      <div class="note">カードを選んだ場合、この後の画面でカードをご登録いただきます。初回の引き落としは翌月1日からです（今月分はこれまで通りのお支払いです）。</div>
+      <div class="note">カードを選んだ場合、この後の画面でカードをご登録いただきます（本日のお支払いはありません）。月謝の引き落としが始まる月は、カード登録画面に表示されます。それまではこれまで通りのお支払いです。</div>
     </div>
 
     <div class="card">
@@ -1141,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
       return { view:'step-result', title:'お支払いが完了しました。', msg:'ご入会ありがとうございます。' + feeMsg + '最後に、教室のLINEへのご登録をお願いします。' };
     }
     if (enrolled === 'cancel') return { view:'step-result', title:'お支払いは完了していません。', msg:'入力した内容はそのまま残っています。お支払い画面にもどるか、入力内容を修正してください。' };
-    if (registered === 'success') return { view:'step-result', title:'カードのご登録が完了しました。', msg:'次回から月謝は自動でお支払いいただけます。ありがとうございました。' };
+    if (registered === 'success') return { view:'step-result', title:'カードのご登録が完了しました。', msg:'月謝は、登録画面に表示された月から毎月1日に自動でお支払いになります。数分以内に、教室のLINEへ完了のお知らせが届きます。' };
     if (registered === 'cancel') return { view:'step-result', title:'カードの登録は完了していません。', msg:'お手数ですが、もう一度LINEのリンクからご登録ください。' };
     if (getParam('mode') === 'member') return { view:'member-form' };
     return { view:'kind-select' };
