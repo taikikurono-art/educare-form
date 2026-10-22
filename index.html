@@ -469,17 +469,13 @@
       <div class="note">入会金・年度更新料はこの後のお支払い画面でカード決済していただきます。月謝のお支払い方法は上記からお選びください。</div>
     </div>
 
-    <div class="card" id="e-discountCard">
+    <div class="card">
       <p class="card-title">割引（該当する場合のみ）</p>
       <div class="pay-options">
         <label><input type="checkbox" id="e-hasSibling"> ごきょうだいが在籍している（兄弟姉妹割引 −500円／月）</label>
-        <label><input type="checkbox" id="e-hasMultiClass"> 同じお子さまが体操とダンスを掛け持ちしている（複数教室割引 −500円／月）</label>
+        <label><input type="checkbox" id="e-hasMultiClass"> このお子さまがJUMP UPの体操とダンスを両方受講している（複数教室割引 −500円／月）</label>
       </div>
-      <div class="note">在籍状況を確認のうえ、月謝に割引を反映します。</div>
-    </div>
-    <div class="card" id="e-kuskaDiscountNote" style="display:none">
-      <p class="card-title">割引について</p>
-      <div class="note">クスカの割引（兄弟姉妹割引・教室割引）は、毎月のクスカのお支払い画面で自動で反映されます。ここでの選択は不要です。</div>
+      <div class="note">在籍状況を確認のうえ、月謝に割引を反映します。クスカとの掛け持ちはこの割引の対象外です（クスカの割引はクスカでご案内します）。</div>
     </div>
 
     <div class="card">
@@ -564,17 +560,13 @@
       <div class="note">カードを選んだ場合、この後の画面でカードをご登録いただきます。初回の引き落としは翌月1日からです（今月分はこれまで通りのお支払いです）。</div>
     </div>
 
-    <div class="card" id="m-discountCard">
+    <div class="card">
       <p class="card-title">割引（該当する場合のみ）</p>
       <div class="pay-options">
         <label><input type="checkbox" id="m-hasSibling"> ごきょうだいが在籍している（兄弟姉妹割引 −500円／月）</label>
-        <label><input type="checkbox" id="m-hasMultiClass"> 同じお子さまが体操とダンスを掛け持ちしている（複数教室割引 −500円／月）</label>
+        <label><input type="checkbox" id="m-hasMultiClass"> このお子さまがJUMP UPの体操とダンスを両方受講している（複数教室割引 −500円／月）</label>
       </div>
-      <div class="note">在籍状況を確認のうえ、月謝に割引を反映します。</div>
-    </div>
-    <div class="card" id="m-kuskaDiscountNote" style="display:none">
-      <p class="card-title">割引について</p>
-      <div class="note">クスカの割引（兄弟姉妹割引・教室割引）は、毎月のクスカのお支払い画面で自動で反映されます。ここでの選択は不要です。</div>
+      <div class="note">在籍状況を確認のうえ、月謝に割引を反映します。クスカとの掛け持ちはこの割引の対象外です（クスカの割引はクスカでご案内します）。</div>
     </div>
 
     <button type="submit">登録する</button>
@@ -1078,8 +1070,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
 <p>月会費は教室・クラスによって異なります。体験時またはLINEでご案内します。</p>
 <h4>割引</h4>
 <p>・兄弟姉妹割引：ごきょうだいで通う場合、お一人につき月500円引き（2人で合計1,000円引き）</p>
-<p>・複数教室割引：同じお子さまが体操とダンスを掛け持ちする場合、月500円引き</p>
-<p>・クスカには、クスカ独自の割引（兄弟姉妹割引・教室割引）があり、毎月のお支払い時に自動で反映されます。</p>
+<p>・複数教室割引：同じお子さまがJUMP UPの体操とダンスを両方受講する場合、月500円引き（クスカとの掛け持ちは対象外です）</p>
 <p>・両方に当てはまる場合は併用できます。ご登録内容から自動で反映されます。</p>
 
 <h4>月会費のお支払い方法</h4>
@@ -1163,31 +1154,6 @@ document.addEventListener('DOMContentLoaded', initLiff);
         }
       } catch (err) {}
     });
-  });
-})();
-</script>
-<script>
-/* クスカを選んだときは JUMP UP の割引欄を隠す（クスカ側に独自の割引があるため） */
-(function(){
-  function sync(pre){
-    var sel = document.getElementById(pre + '-classId');
-    var card = document.getElementById(pre + '-discountCard');
-    var note = document.getElementById(pre + '-kuskaDiscountNote');
-    if (!sel || !card) return;
-    var isKuska = /^KSCA/.test(sel.value || '');
-    card.style.display = isKuska ? 'none' : '';
-    if (note) note.style.display = isKuska ? '' : 'none';
-    if (isKuska) {
-      ['-hasSibling','-hasMultiClass'].forEach(function(k){ var c = document.getElementById(pre + k); if (c) c.checked = false; });
-    }
-  }
-  ['e','m'].forEach(function(pre){
-    var sel = document.getElementById(pre + '-classId');
-    if (!sel) return;
-    sel.addEventListener('change', function(){ sync(pre); });
-    // 選択肢の読み込み後や自動選択にも追従
-    new MutationObserver(function(){ sync(pre); }).observe(sel, { childList: true });
-    sync(pre);
   });
 })();
 </script>
