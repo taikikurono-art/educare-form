@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>会費・お手続き</title>
+<style>
+  :root{ --bg:#f6f7f4; --card:#fff; --ink:#23302a; --sub:#66736c; --line:#e3e7e2; --green:#2f8f5b; --green-soft:#e7f4ec; --orange:#d9791f; --orange-soft:#fdf1e4; --blue-soft:#e8f0fa; --blue:#2d6fb8; --gray:#9aa39e; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;line-height:1.6;font-size:15px}
+  .wrap{max-width:520px;margin:0 auto;padding:18px 16px 48px}
+  h1{font-size:19px;text-align:center;margin:4px 0 14px}
+  h2{font-size:16px;margin:0 0 10px}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:12px}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+  .k{color:var(--sub)} .minus{color:var(--orange)}
+  .why{font-size:12px;color:var(--sub);margin:-2px 0 4px}
+  .total{border-top:1px dashed var(--line);margin-top:6px;padding-top:7px;font-weight:700;font-size:17px}
+  .ttl{font-weight:700;margin-bottom:6px}
+  .pill{display:inline-block;font-size:12px;padding:1px 9px;border-radius:999px;background:var(--green-soft);color:var(--green);font-weight:700;white-space:nowrap}
+  .pill.o{background:var(--orange-soft);color:var(--orange)} .pill.g{background:#eef0ec;color:var(--sub)} .pill.b{background:var(--blue-soft);color:var(--blue)}
+  .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{flex:1;min-width:30%;text-align:center;padding:8px 4px;border-radius:10px;background:#e9ece7;border:0;font-size:14px;color:var(--ink);font-family:inherit}
+  .tab.on{background:var(--green);color:#fff;font-weight:700}
+  button.btn{display:block;width:100%;padding:13px;border-radius:12px;font-weight:700;font-size:15px;margin-top:9px;border:0;font-family:inherit;cursor:pointer}
+  .main{background:var(--green);color:#fff} .sub{background:#fff;border:1.5px solid var(--green)!important;color:var(--green)} .ghost{background:#ebeee9;color:#4a554f}
+  button.btn:disabled{opacity:.55}
+  .link{display:block;text-align:center;font-size:12.5px;color:var(--gray);margin:20px auto 0;text-decoration:underline;background:none;border:0;font-family:inherit;cursor:pointer}
+  .note{font-size:13px;color:var(--sub);background:#f7f8f5;border-radius:10px;padding:9px 11px;margin:8px 0}
+  .warn{font-size:13px;color:#8a4b12;background:var(--orange-soft);border-radius:10px;padding:9px 11px;margin:8px 0}
+  .okmsg{font-size:14px;color:#1d5e3b;background:var(--green-soft);border-radius:10px;padding:10px 12px;margin:0 0 12px}
+  .err{font-size:14px;color:#8b2b2b;background:#fbecec;border-radius:10px;padding:10px 12px;margin:0 0 12px}
+  label.lb{display:block;font-size:13px;font-weight:700;margin:10px 0 4px}
+  select,textarea{width:100%;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-family:inherit;color:var(--ink)}
+  textarea{min-height:70px}
+  .choice{display:block;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;margin:8px 0;background:#fff;font-family:inherit;cursor:pointer;color:var(--ink)}
+  .choice b{display:block;font-size:15px} .choice span{font-size:12.5px;color:var(--sub)}
+  .choice.g{border-color:var(--green);background:var(--green-soft)} .choice.b{border-color:var(--blue);background:var(--blue-soft)}
+  .fam{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+  .fam:last-child{border-bottom:0}
+  .fam button{font-size:12px;background:none;border:1px solid var(--line);border-radius:8px;padding:3px 9px;color:var(--sub);font-family:inherit}
+  .back{background:none;border:0;color:var(--green);font-size:14px;padding:0;margin-bottom:10px;font-family:inherit;cursor:pointer}
+  .center{text-align:center}
+  .ring{width:44px;height:44px;border:4px solid var(--green-soft);border-top-color:var(--green);border-radius:50%;margin:60px auto 14px;animation:sp 0.9s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>会費・お手続き</h1>
+  <div id="msg"></div>
+  <div id="loading" class="center"><div class="ring"></div><div class="k">読み込んでいます…</div></div>
+  <div id="view"></div>
+</div>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxw3QIzqUsoYhlh7bp25SpKwWY6u5TpuwyheGiPZ7Cxi_IM_QyyZDcqwA4xiyUPN9uo/exec';
+var LIFF_ID = '2011170601-J2uFdF1V';
+var REG_URL = 'https://liff.line.me/2011170601-J2uFdF1V?mode=member';
+var token = null, data = null, cur = 0;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function yen(n){ return Number(n || 0).toLocaleString('ja-JP') + '円'; }
+function getParam(name){
+  var q = new URLSearchParams(location.search), v = q.get(name);
+  if (v) return v;
+  var st = q.get('liff.state');
+  if (st) { try { return new URLSearchParams(decodeURIComponent(st).replace(/^[^?]*\?/, '')).get(name); } catch(e){} }
+  return null;
+}
+function showMsg(text, kind){ $('msg').innerHTML = text ? '<div class="' + (kind || 'okmsg') + '">' + esc(text) + '</div>' : ''; if (text) window.scrollTo(0, 0); }
+function loading(on){ $('loading').classList.toggle('hide', !on); if (on) $('view').innerHTML = ''; }
+
+// 返事が届かなかったときは受付番号で結果を取りに行く（iPhoneのLINE対策）
+function api(op, extra){
+  var body = Object.assign({ op: op, accessToken: token, reqId: 'F' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) }, extra || {});
+  function check(o){ if (!o || o.ok === false) throw new Error((o && o.error) || 'エラーが発生しました'); return o; }
+  function poll(left){
+    return new Promise(function(r){ setTimeout(r, 1500); })
+      .then(function(){ return fetch(GAS_URL + '?action=result&reqId=' + encodeURIComponent(body.reqId) + '&_=' + Date.now()); })
+      .then(function(r){ return r.json(); })
+      .then(function(o){ if (o && o.pending) { if (left > 0) return poll(left - 1); throw new Error('通信がうまくいきませんでした。電波のよい場所で、もう一度お試しください。'); } return o; },
+            function(err){ if (left > 0) return poll(left - 1); throw err; });
+  }
+  return fetch(GAS_URL + '?action=feePortal', { method: 'POST', body: JSON.stringify(body) })
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return poll(20); })
+    .then(check);
+}
+
+function child(){ return data.children[cur]; }
+
+function renderHome(){
+  var v = $('view');
+  if (!data.children.length) {
+    v.innerHTML = '<div class="box"><div class="ttl">会員情報が見つかりませんでした</div><div class="k" style="font-size:14px">新しいお支払い方法（カード・銀行振込）のご登録がまだの方は、こちらからご登録ください。ご家族が登録された場合は、登録された方から「家族を追加」で招待を送ってもらってください。</div><button class="btn main" onclick="location.href=REG_URL">お支払い方法を登録する</button></div>';
+    return;
+  }
+  var h = '';
+  if (data.children.length > 1) {
+    h += '<div class="tabs">' + data.children.map(function(c, i){ return '<button class="tab' + (i === cur ? ' on' : '') + '" onclick="cur=' + i + ';showMsg(\'\');renderHome()">' + esc(c.childName) + '</button>'; }).join('') + '</div>';
+  }
+  var c = child();
+  h += '<div class="box"><div class="ttl">' + esc(c.classLabel) + '</div>';
+  h += '<div class="row"><span class="k">月謝</span><span>' + yen(c.amount) + '</span></div>';
+  c.discounts.forEach(function(d){ h += '<div class="row minus"><span>' + esc(d.name) + '</span><span>−' + yen(d.amount) + '</span></div><div class="why">' + esc(d.why) + '</div>'; });
+  h += '<div class="row total"><span>毎月のお支払い</span><span>' + yen(c.after) + '</span></div>';
+  if (c.startMonth) h += '<div class="note">月謝は' + esc(c.startMonth) + '分からです。それまではこれまでどおりのお支払いです。</div>';
+  if (c.kyukai) h += '<div class="warn">休会：' + monthLabel(c.kyukai.from) + '〜' + monthLabel(c.kyukai.to) + '（休会中の月謝はかかりません）</div>';
+  if (c.taikai) h += '<div class="warn">退会のお届け：' + monthLabel(c.taikai.last) + '末' + (c.taikai.status === 'confirmed' ? '（手続き完了）' : '（担当が確認中）') + '</div>';
+  h += '</div>';
+
+  h += '<div class="box">';
+  if (c.pay === 'card') {
+    h += '<div class="row"><span class="k">お支払い方法</span><span>カード' + (c.card ? ' ' + esc(c.card.brand) + ' ••••' + esc(c.card.last4) : '') + '</span></div>';
+    if (c.next) h += '<div class="row"><span class="k">次回の引き落とし</span><span>' + esc(c.next) + (c.paused ? ' <span class="pill g">休会中</span>' : '') + '</span></div>';
+    h += '<div class="note">毎月1日に、ご登録のカードから自動で引き落とされます。</div>';
+  } else {
+    var st = !c.thisMonthDue ? '<span class="pill g">' + (c.kyukai ? 'お休み' : '開始前') + '</span>' : c.thisMonthPaid ? '<span class="pill">入金済み</span>' : '<span class="pill o">未入金</span>';
+    h += '<div class="row"><span class="k">お支払い方法</span><span>' + (c.pay === 'konbini' ? 'コンビニ払い' : '銀行振込') + '</span></div>';
+    h += '<div class="row"><span class="k">今月分</span><span>' + st + '</span></div>';
+    h += '<div class="note">毎月1日に、このLINEへお支払いのご案内が届きます。</div>';
+  }
+  h += '</div>';
+
+  if (c.history && c.history.length) {
+    h += '<div class="box"><div class="ttl">お支払いの記録</div>' + c.history.map(function(x){
+      var cls = x.status === '済' || x.status === '0円' ? '' : x.status === 'お休み' ? ' g' : ' o';
+      return '<div class="row"><span>' + esc(x.label) + '</span><span>' + yen(x.amount) + ' <span class="pill' + cls + '">' + esc(x.status) + '</span></span></div>';
+    }).join('') + '</div>';
+  }
+
+  if (c.role === 'owner') {
+    if (c.pay === 'card') h += '<button class="btn sub" id="b-card" onclick="openCard()">カードを変更する</button>';
+    if (c.kyukai && !c.kyukai.applied) h += '<button class="btn ghost" onclick="cancelKyukai()">休会のお届けを取り消す</button>';
+    else if (!c.kyukai && !c.taikai) h += '<button class="btn ghost" onclick="renderKyukai()">休会したい</button>';
+    h += '<button class="link" onclick="renderOther()">その他のお手続き</button>';
+  } else {
+    h += '<div class="note">カードの変更・休会などのお手続きは、登録された保護者の方からお願いします。</div>';
+  }
+
+  if (data.isOwner) {
+    h += '<div class="box" style="margin-top:26px"><div class="ttl">ご家族（会費の確認だけできます）</div>';
+    h += data.family.length ? data.family.map(function(f){ return '<div class="fam"><span>' + esc(f.name || 'ご家族') + '</span><button onclick="removeFamily(\'' + esc(f.id) + '\')">解除</button></div>'; }).join('') : '<div class="k" style="font-size:13px">まだ追加されていません。</div>';
+    h += '<button class="btn sub" onclick="invite()">家族を追加する</button></div>';
+  }
+  v.innerHTML = h;
+}
+
+function monthLabel(key){ var m = String(key || '').match(/^(\d{4})-(\d{1,2})$/); return m ? m[1] + '年' + (+m[2]) + '月' : key; }
+
+function openCard(){
+  var b = $('b-card'); b.disabled = true; b.textContent = 'カードの画面を用意しています…';
+  api('cardPortal', { memberId: child().memberId }).then(function(o){ location.href = o.url; })
+    .catch(function(e){ b.disabled = false; b.textContent = 'カードを変更する'; showMsg(e.message, 'err'); });
+}
+
+function renderKyukai(){
+  showMsg('');
+  var c = child(), ms = data.months;
+  var opts = ms.map(function(m, i){ return '<option value="' + i + '">' + esc(m.label) + '</option>'; }).join('');
+  $('view').innerHTML =
+    '<button class="back" onclick="renderHome()">← もどる</button>' +
+    '<div class="box"><h2>休会のお申し込み（' + esc(c.childName) + 'さん）</h2>' +
+    '<label class="lb">休会する月（はじめ）</label><select id="k-from" onchange="kyukaiTo()">' + opts + '</select>' +
+    '<label class="lb">休会する月（おわり）</label><select id="k-to" onchange="kyukaiWarn()"></select>' +
+    '<label class="lb">理由</label><select id="k-reason"><option>体調・けが</option><option>家庭の事情</option><option>学校・ほかの習い事の都合</option><option>その他</option></select>' +
+    '<textarea id="k-note" placeholder="よろしければ、くわしい内容をお書きください（なくても大丈夫です）"></textarea>' +
+    '<div id="k-warn"></div>' +
+    '<div class="note">・休会中の月謝はかかりません（自動で止めて、自動で再開します）<br>・前月15日までのお届けが必要です（いまからだと' + esc(data.minMonthLabel) + 'から）</div>' +
+    '<button class="btn main" id="k-go" onclick="submitKyukai()">休会を申し込む</button></div>';
+  kyukaiTo();
+}
+function kyukaiTo(){
+  var f = +$('k-from').value, ms = data.months, h = '';
+  for (var i = f; i < ms.length; i++) h += '<option value="' + i + '">' + esc(ms[i].label) + '</option>';
+  $('k-to').innerHTML = h; kyukaiWarn();
+}
+function kyukaiWarn(){
+  var n = (+$('k-to').value) - (+$('k-from').value) + 1;
+  $('k-warn').innerHTML = n >= 3 ? '<div class="warn">3か月以上の休会は、ご復帰のときに入会金（3,000円）が必要です（やむを得ない事由を除く）。</div>' : '';
+}
+function submitKyukai(){
+  var ms = data.months, f = ms[+$('k-from').value], t = ms[+$('k-to').value];
+  var b = $('k-go');
+  if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = f.label + '〜' + t.label + ' で申し込む（確定）'; return; }
+  b.disabled = true; b.textContent = '送信しています…';
+  var reason = $('k-reason').value + ($('k-note').value.trim() ? '：' + $('k-note').value.trim() : '');
+  api('kyukai', { memberId: child().memberId, from: f.key, to: t.key, reason: reason })
+    .then(function(o){ return reload(o.message); })
+    .catch(function(e){ b.disabled = false; b.dataset.confirm = ''; b.textContent = '休会を申し込む'; showMsg(e.message, 'err'); });
+}
+function cancelKyukai(){
+  if (!window.confirm('休会のお届けを取り消しますか？')) return;
+  api('kyukaiCancel', { memberId: child().memberId }).then(function(o){ return reload(o.message); }).catch(function(e){ showMsg(e.message, 'err'); });
+}
+
+function renderOther(){
+  showMsg('');
+  var c = child();
+  $('view').innerHTML =
+    '<button class="back" onclick="renderHome()">← もどる</button>' +
+    '<h2>その他のお手続き</h2>' +
+    (c.kyukai || c.taikai ? '' : '<button class="choice g" onclick="renderKyukai()"><b>お休みしたい</b><span>休会なら、月謝を止めて籍は残せます</span></button>') +
+    '<button class="choice b" onclick="consult(\'soudan\')"><b>先生に相談したい</b><span>クラスの変更・通い方のご相談など（LINEのトークへ）</span></button>' +
+    '<button class="choice" onclick="consult(\'henkou\')"><b>登録内容を変えたい</b><span>電話番号・メール・お支払い方法など</span></button>' +
+    (c.taikai ? '' : '<button class="link" style="margin-top:34px" onclick="renderTaikai()">教室をやめる（退会）</button>');
+}
+function consult(kind){
+  var n = child().childName;
+  var text = kind === 'soudan' ? '【ご相談】' + n + 'の通い方（クラス・曜日など）について相談したいです' : '【登録内容の変更】' + n + 'の登録内容（電話番号・メール・お支払い方法など）を変えたいです';
+  if (window.liff && liff.isInClient && liff.isInClient()) {
+    liff.sendMessages([{ type: 'text', text: text }]).then(function(){
+      renderHome(); showMsg('LINEのトークに送りました。担当からお返事します。続けて、トークにくわしい内容をお書きください。');
+    }).catch(function(){ renderHome(); showMsg('LINEのトークで、そのままご連絡ください。', 'err'); });
+  } else { renderHome(); showMsg('LINEのトークで、そのままご連絡ください。', 'err'); }
+}
+
+function renderTaikai(){
+  showMsg('');
+  var c = child(), ms = data.months;
+  $('view').innerHTML =
+    '<button class="back" onclick="renderOther()">← もどる</button>' +
+    '<div class="box"><h2>退会のお届け（' + esc(c.childName) + 'さん）</h2>' +
+    '<div class="okmsg" style="margin-top:4px">いつも通っていただき、ありがとうございます。</div>' +
+    '<label class="lb">最後のレッスン月</label><select id="t-last">' + ms.map(function(m, i){ return '<option value="' + i + '">' + esc(m.label) + '</option>'; }).join('') + '</select>' +
+    '<label class="lb">やめる理由（必須）</label><select id="t-reason"><option value="">選んでください</option><option>習い事を整理するため</option><option>曜日・時間が合わなくなった</option><option>引っ越し</option><option>本人の気持ち</option><option>体調・けが</option><option>その他</option></select>' +
+    '<textarea id="t-note" placeholder="よろしければ、くわしい内容をお書きください（今後の教室づくりの参考にします）"></textarea>' +
+    '<div class="note">・退会は、退会する月の前月15日までのお届けが必要です（いまからだと最短で' + esc(data.minMonthLabel) + '末）<br>・最後の月までの月謝はかかります。その次の月から止まります<br>・担当が確認して、あらためてLINEでご連絡します</div>' +
+    '<button class="btn ghost" id="t-go" onclick="submitTaikai()">退会を届け出る</button></div>';
+}
+function submitTaikai(){
+  var last = data.months[+$('t-last').value], r = $('t-reason').value;
+  if (!r) { showMsg('やめる理由を選んでください。', 'err'); return; }
+  var b = $('t-go');
+  if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = last.label + '末で退会を届け出る（確定）'; return; }
+  b.disabled = true; b.textContent = '送信しています…';
+  api('taikai', { memberId: child().memberId, last: last.key, reason: r + ($('t-note').value.trim() ? '：' + $('t-note').value.trim() : '') })
+    .then(function(o){ return reload(o.message); })
+    .catch(function(e){ b.disabled = false; b.dataset.confirm = ''; b.textContent = '退会を届け出る'; showMsg(e.message, 'err'); });
+}
+
+function invite(){
+  api('invite').then(function(o){
+    var text = 'JUMP UPの会費の確認ページに、家族として追加する招待です（24時間有効）。LINEで開いてください。\n' + o.url;
+    var share = 'https://line.me/R/share?text=' + encodeURIComponent(text);
+    if (window.liff && liff.isInClient && liff.isInClient()) liff.openWindow({ url: share, external: false });
+    else location.href = share;
+  }).catch(function(e){ showMsg(e.message, 'err'); });
+}
+function removeFamily(id){
+  if (!window.confirm('このご家族の確認を解除しますか？')) return;
+  api('removeFamily', { id: id }).then(function(){ return reload('解除しました。'); }).catch(function(e){ showMsg(e.message, 'err'); });
+}
+
+function reload(message){
+  var keep = data && data.children[cur] ? data.children[cur].memberId : null;
+  loading(true);
+  return api('home').then(function(o){
+    data = o; cur = 0;
+    if (keep) data.children.forEach(function(c, i){ if (c.memberId === keep) cur = i; });
+    loading(false); renderHome(); if (message) showMsg(message);
+  }).catch(function(e){ loading(false); showMsg(e.message, 'err'); });
+}
+
+(async function(){
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+    token = liff.getAccessToken();
+  } catch (e) { token = null; }
+  if (!token) { loading(false); showMsg('LINEのメニューから開いてください。', 'err'); return; }
+  var inv = getParam('invite'), first = '';
+  if (inv) {
+    try { var r = await api('acceptInvite', { invite: inv }); first = r.message || ''; }
+    catch (e) { first = ''; showMsg(e.message, 'err'); }
+  }
+  try { data = await api('home'); loading(false); renderHome(); if (first) showMsg(first); }
+  catch (e) { loading(false); showMsg(e.message, 'err'); }
+})();
+</script>
+</body>
+</html>

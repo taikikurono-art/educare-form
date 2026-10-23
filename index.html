@@ -1312,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
         } else if (result && result.checkoutError) {
           document.getElementById('memberDoneMsg').textContent = 'ご登録は受け付けました。カード登録画面をご用意できなかったため、担当より改めてご連絡いたします。';
         } else if (payload.payMethod === 'konbini' || payload.payMethod === 'bank_transfer') {
-          document.getElementById('memberDoneMsg').textContent = '毎月1日に、このLINEへお支払いのご案内をお送りします。';
+          document.getElementById('memberDoneMsg').textContent = (result && result.startLabel ? result.startLabel + 'から、' : '') + '毎月1日に、このLINEへお支払いのご案内をお送りします。' + (result && result.startLabel ? 'それまではこれまでどおりのお支払いです。' : '');
         } else {
           document.getElementById('memberDoneMsg').textContent = 'ご登録を受け付けました。';
         }
