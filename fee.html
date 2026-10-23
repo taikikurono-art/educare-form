@@ -58,6 +58,7 @@
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbxw3QIzqUsoYhlh7bp25SpKwWY6u5TpuwyheGiPZ7Cxi_IM_QyyZDcqwA4xiyUPN9uo/exec';
 var LIFF_ID = '2011170601-J2uFdF1V';
 var REG_URL = 'https://liff.line.me/2011170601-J2uFdF1V?mode=member';
+var PAYPAL_UNTIL = '2027-04-01';   // この日から、未登録の人にPayPalを出さない（「会員様専用です」の表示）
 var token = null, data = null, cur = 0;
 
 function $(id){ return document.getElementById(id); }
@@ -95,7 +96,17 @@ function child(){ return data.children[cur]; }
 function renderHome(){
   var v = $('view');
   if (!data.children.length) {
-    v.innerHTML = '<div class="box"><div class="ttl">会員情報が見つかりませんでした</div><div class="k" style="font-size:14px">新しいお支払い方法（カード・銀行振込）のご登録がまだの方は、こちらからご登録ください。ご家族が登録された場合は、登録された方から「家族を追加」で招待を送ってもらってください。</div><button class="btn main" onclick="location.href=REG_URL">お支払い方法を登録する</button></div>';
+    var paypalOk = new Date() < new Date(PAYPAL_UNTIL + 'T00:00:00+09:00');
+    v.innerHTML = paypalOk
+      ? '<div class="box"><div class="ttl">新しいお支払い方法へのご登録がまだの方</div>' +
+        '<div class="k" style="font-size:14px">カード・銀行振込でのお支払いに切り替えると、毎月のお手続きがいらなくなります。切り替えるまでは、これまでどおりPayPalでお支払いください。</div>' +
+        '<button class="btn main" onclick="location.href=REG_URL">新しいお支払い方法に登録する</button>' +
+        '<a class="btn sub" href="https://paypal.me/educare0713?locale.x=ja_JP">PayPalで今月分を支払う</a></div>' +
+        '<div class="note">ご家族が登録済みの場合は、登録された方から「家族を追加」で招待を送ってもらうと、会費を確認できます。</div>'
+      : '<div class="box"><div class="ttl">会費・お手続きは会員様専用です</div>' +
+        '<div class="k" style="font-size:14px">教室に通っている方で、まだお支払い方法の登録がお済みでない方は、こちらからご登録ください。</div>' +
+        '<button class="btn main" onclick="location.href=REG_URL">お支払い方法を登録する</button></div>' +
+        '<div class="note">ご家族が登録済みの場合は、登録された方から「家族を追加」で招待を送ってもらってください。わからないときは、このLINEでお気軽にご連絡ください。</div>';
     return;
   }
   var h = '';
