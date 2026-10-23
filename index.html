@@ -1317,7 +1317,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
           document.getElementById('memberDoneMsg').textContent = 'ご登録を受け付けました。';
         }
       }).withFailureHandler(function(err){
-        document.getElementById('memberDoneMsg').textContent = 'エラーが発生しました。お手数ですが事務局までご連絡ください（' + (err && err.message ? err.message : err) + '）';
+        var em_ = (err && err.message) ? err.message : String(err); var pp_ = document.getElementById('member-prep'); if (pp_) pp_.style.display = 'none';
+        document.getElementById('memberDoneMsg').textContent = /^このお子さま/.test(em_) ? em_ : 'エラーが発生しました。お手数ですが事務局までご連絡ください（' + em_ + '）';
       }).registerExisting(payload);
       });
     }
@@ -1393,7 +1394,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
           document.getElementById('enrollDoneMsg').textContent = '受付が完了しました。担当より改めてご連絡いたします。';
         }
       }).withFailureHandler(function(err){
-        document.getElementById('enrollDoneMsg').textContent = 'エラーが発生しました。お手数ですが事務局までご連絡ください（' + (err && err.message ? err.message : err) + '）';
+        var em_ = (err && err.message) ? err.message : String(err); var pp_ = document.getElementById('enroll-prep'); if (pp_) pp_.style.display = 'none';
+        document.getElementById('enrollDoneMsg').textContent = /^このお子さま/.test(em_) ? em_ : 'エラーが発生しました。お手数ですが事務局までご連絡ください（' + em_ + '）';
       }).submitEnrollment(payload);
       });
     }
