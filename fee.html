@@ -22,7 +22,7 @@
   .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
   .tab{flex:1;min-width:30%;text-align:center;padding:8px 4px;border-radius:10px;background:#e9ece7;border:0;font-size:14px;color:var(--ink);font-family:inherit}
   .tab.on{background:var(--green);color:#fff;font-weight:700}
-  button.btn{display:block;width:100%;padding:13px;border-radius:12px;font-weight:700;font-size:15px;margin-top:9px;border:0;font-family:inherit;cursor:pointer}
+  button.btn,a.btn{display:block;text-align:center;text-decoration:none;box-sizing:border-box;width:100%;padding:13px;border-radius:12px;font-weight:700;font-size:15px;margin-top:9px;border:0;font-family:inherit;cursor:pointer}
   .main{background:var(--green);color:#fff} .sub{background:#fff;border:1.5px solid var(--green)!important;color:var(--green)} .ghost{background:#ebeee9;color:#4a554f}
   button.btn:disabled{opacity:.55}
   .link{display:block;text-align:center;font-size:12.5px;color:var(--gray);margin:20px auto 0;text-decoration:underline;background:none;border:0;font-family:inherit;cursor:pointer}
@@ -107,7 +107,8 @@ function renderHome(){
   h += '<div class="row"><span class="k">月謝</span><span>' + yen(c.amount) + '</span></div>';
   c.discounts.forEach(function(d){ h += '<div class="row minus"><span>' + esc(d.name) + '</span><span>−' + yen(d.amount) + '</span></div><div class="why">' + esc(d.why) + '</div>'; });
   h += '<div class="row total"><span>毎月のお支払い</span><span>' + yen(c.after) + '</span></div>';
-  if (c.startMonth) h += '<div class="note">月謝は' + esc(c.startMonth) + '分からです。それまではこれまでどおりのお支払いです。</div>';
+  if (c.startMonth) h += '<div class="note">新しいお支払い方法での月謝は' + esc(c.startMonth) + '分からです。それまでの月謝は、これまでどおりPayPalでお支払いください。</div>' +
+    '<a class="btn sub" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box" href="https://paypal.me/educare0713?locale.x=ja_JP">PayPalで今月分を支払う</a>';
   if (c.kyukai) h += '<div class="warn">休会：' + monthLabel(c.kyukai.from) + '〜' + monthLabel(c.kyukai.to) + '（休会中の月謝はかかりません）</div>';
   if (c.taikai) h += '<div class="warn">退会のお届け：' + monthLabel(c.taikai.last) + '末' + (c.taikai.status === 'confirmed' ? '（手続き完了）' : '（担当が確認中）') + '</div>';
   h += '</div>';
