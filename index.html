@@ -603,6 +603,33 @@
       </div>
     </div>
 
+    <div class="card" id="m-sib-card" style="display:none">
+      <p class="card-title">一緒に登録するごきょうだい</p>
+      <div class="field">
+        <label for="m-sibName">お名前 *</label>
+        <input type="text" id="m-sibName" placeholder="例：じゃんぷ はなこ">
+      </div>
+      <div class="field">
+        <label for="m-sibKana">ふりがな *</label>
+        <input type="text" id="m-sibKana">
+      </div>
+      <div class="field">
+        <label for="m-sibGrade">学年 *</label>
+        <select id="m-sibGrade">
+          <option value="">選択</option><option>2歳児</option><option>年少</option><option>年中</option><option>年長</option>
+          <option>小1</option><option>小2</option><option>小3</option><option>小4</option>
+          <option>小5</option><option>小6</option><option>中学生以上</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="m-sibClassId">通っているクラス *</label>
+        <select id="m-sibClassId"><option value="">選択してください</option></select>
+      </div>
+      <p style="margin:0;font-size:13px;color:#667">同じカード（または同じ振込案内）で、ごきょうだいの月謝もお支払いいただけます。兄弟姉妹割引（各 −500円）が付きます。</p>
+      <button type="button" id="m-sib-remove" style="margin-top:8px;background:none;border:0;color:#888;text-decoration:underline;font-size:13px;padding:0">ごきょうだいの登録をやめる</button>
+    </div>
+    <button type="button" id="m-sib-add" style="width:100%;padding:11px;margin:-4px 0 16px;border:1.5px dashed #9cc7ad;border-radius:10px;background:#f4faf6;color:#2f8f5b;font-weight:700;font-size:14px">＋ ごきょうだいも一緒に登録する</button>
+
     <div class="card">
       <p class="card-title">これからの月謝のお支払い方法</p>
       <div class="pay-options">
@@ -1298,6 +1325,27 @@ document.addEventListener('DOMContentLoaded', initLiff);
   document.getElementById('m-classId').addEventListener('change', function(){
     if (document.getElementById('m-extra-box').style.display !== 'none') fillExtraClasses();
   });
+  function fillSibClasses(){
+    var sel = document.getElementById('m-sibClassId'), keep = sel.value;
+    sel.innerHTML = '<option value="">選択してください</option>';
+    (allClasses || []).forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
+      sel.appendChild(opt);
+    });
+    if (keep) sel.value = keep;
+  }
+  function setSibRequired(on){ ['m-sibName','m-sibKana','m-sibGrade','m-sibClassId'].forEach(function(id){ document.getElementById(id).required = on; }); }
+  document.getElementById('m-sib-add').addEventListener('click', function(){
+    fillSibClasses();
+    document.getElementById('m-sib-card').style.display = '';
+    this.style.display = 'none'; setSibRequired(true);
+  });
+  document.getElementById('m-sib-remove').addEventListener('click', function(){
+    ['m-sibName','m-sibKana','m-sibGrade','m-sibClassId'].forEach(function(id){ document.getElementById(id).value = ''; });
+    document.getElementById('m-sib-card').style.display = 'none';
+    document.getElementById('m-sib-add').style.display = ''; setSibRequired(false);
+  });
   document.getElementById('member-form').addEventListener('submit', function(e){
     e.preventDefault();
     var lp = null;
@@ -1309,6 +1357,9 @@ document.addEventListener('DOMContentLoaded', initLiff);
         program: document.getElementById('m-program').value,
         classId: document.getElementById('m-classId').value,
         extraClassIds: (document.getElementById('m-extra-box').style.display !== 'none' && document.getElementById('m-classId2').value) ? [document.getElementById('m-classId2').value] : [],
+        extraChildren: (document.getElementById('m-sib-card').style.display !== 'none' && document.getElementById('m-sibName').value.trim() && document.getElementById('m-sibClassId').value) ? [{
+          childName: document.getElementById('m-sibName').value.trim(), childKana: document.getElementById('m-sibKana').value.trim(),
+          grade: document.getElementById('m-sibGrade').value, classId: document.getElementById('m-sibClassId').value }] : [],
         childName: document.getElementById('m-childName').value,
         childKana: document.getElementById('m-childKana').value,
         grade: document.getElementById('m-grade').value,
@@ -1336,6 +1387,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         var mLabel = (mSel && mSel.options[mSel.selectedIndex]) ? mSel.options[mSel.selectedIndex].textContent.trim() : '';
         var mSel2 = document.getElementById('m-classId2');
         if (payload.extraClassIds && payload.extraClassIds.length && mSel2 && mSel2.options[mSel2.selectedIndex]) mLabel += '\n' + mSel2.options[mSel2.selectedIndex].textContent.trim();
+        var sSel = document.getElementById('m-sibClassId');
+        if (payload.extraChildren && payload.extraChildren.length && sSel && sSel.options[sSel.selectedIndex]) mLabel += '\nごきょうだい：' + payload.extraChildren[0].childName + ' ' + sSel.options[sSel.selectedIndex].textContent.trim();
         if (result && result.checkoutUrl) {
           document.getElementById('memberDoneMsg').textContent = 'カードのご登録画面へ移動します…';
           top.location.href = result.checkoutUrl;
