@@ -111,7 +111,7 @@ function renderHome(){
   }
   var h = '';
   if (data.children.length > 1) {
-    h += '<div class="tabs">' + data.children.map(function(c, i){ return '<button class="tab' + (i === cur ? ' on' : '') + '" onclick="cur=' + i + ';showMsg(\'\');renderHome()">' + esc(c.childName) + '</button>'; }).join('') + '</div>';
+    h += '<div class="tabs">' + data.children.map(function(c, i){ return '<button class="tab' + (i === cur ? ' on' : '') + '" onclick="cur=' + i + ';showMsg(\'\');renderHome()">' + esc(c.childName) + (data.children.filter(function(x){ return x.childName === c.childName; }).length > 1 ? '<br><small>' + esc(String(c.classLabel || '').replace(/^【[^】]*】/, '').replace(/クラス$/, '')) + '</small>' : '') + '</button>'; }).join('') + '</div>';
   }
   var c = child();
   h += '<div class="box"><div class="ttl">' + esc(c.classLabel) + '</div>';

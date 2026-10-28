@@ -574,6 +574,13 @@
           <option value="">まずプログラムを選んでください</option>
         </select>
       </div>
+      <div class="field" id="m-extra-box" style="display:none">
+        <label for="m-classId2">もう1つの教室のクラス</label>
+        <select id="m-classId2"><option value="">選択してください</option></select>
+        <p class="hint" style="margin:6px 0 0;font-size:13px;color:#667">同じカードで、両方の教室の月謝を毎月1日にお支払いいただけます。体操とダンスの両方に通う場合は、複数教室割引（各教室 −500円）が付きます。</p>
+        <button type="button" id="m-extra-remove" style="margin-top:8px;background:none;border:0;color:#888;text-decoration:underline;font-size:13px;padding:0">追加をやめる</button>
+      </div>
+      <button type="button" id="m-extra-add" style="width:100%;padding:11px;border:1.5px dashed #9cc7ad;border-radius:10px;background:#f4faf6;color:#2f8f5b;font-weight:700;font-size:14px">＋ もう1つの教室も通っている（体操とダンスなど）</button>
     </div>
 
     <div class="card">
@@ -1267,6 +1274,30 @@ document.addEventListener('DOMContentLoaded', initLiff);
       return '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
     });
   });
+  function fillExtraClasses(){
+    var sel = document.getElementById('m-classId2'), first = document.getElementById('m-classId').value, keep = sel.value;
+    sel.innerHTML = '<option value="">選択してください</option>';
+    (allClasses || []).forEach(function(c){
+      if (c.id === first) return;
+      var opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = '【' + c.base + '】' + c.name + '（' + c.weekday + ' ' + c.start + (c.end ? '〜'+c.end : '') + '）';
+      sel.appendChild(opt);
+    });
+    if (keep && keep !== first) sel.value = keep;
+  }
+  document.getElementById('m-extra-add').addEventListener('click', function(){
+    fillExtraClasses();
+    document.getElementById('m-extra-box').style.display = '';
+    this.style.display = 'none';
+  });
+  document.getElementById('m-extra-remove').addEventListener('click', function(){
+    document.getElementById('m-classId2').value = '';
+    document.getElementById('m-extra-box').style.display = 'none';
+    document.getElementById('m-extra-add').style.display = '';
+  });
+  document.getElementById('m-classId').addEventListener('change', function(){
+    if (document.getElementById('m-extra-box').style.display !== 'none') fillExtraClasses();
+  });
   document.getElementById('member-form').addEventListener('submit', function(e){
     e.preventDefault();
     var lp = null;
@@ -1277,6 +1308,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
         email: document.getElementById('m-email').value,
         program: document.getElementById('m-program').value,
         classId: document.getElementById('m-classId').value,
+        extraClassIds: (document.getElementById('m-extra-box').style.display !== 'none' && document.getElementById('m-classId2').value) ? [document.getElementById('m-classId2').value] : [],
         childName: document.getElementById('m-childName').value,
         childKana: document.getElementById('m-childKana').value,
         grade: document.getElementById('m-grade').value,
@@ -1302,6 +1334,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         if (!(result && result.checkoutUrl)) { document.getElementById('member-prep').style.display = 'none'; document.getElementById('member-badge').style.display = ''; }
         var mSel = document.getElementById('m-classId');
         var mLabel = (mSel && mSel.options[mSel.selectedIndex]) ? mSel.options[mSel.selectedIndex].textContent.trim() : '';
+        var mSel2 = document.getElementById('m-classId2');
+        if (payload.extraClassIds && payload.extraClassIds.length && mSel2 && mSel2.options[mSel2.selectedIndex]) mLabel += '\n' + mSel2.options[mSel2.selectedIndex].textContent.trim();
         if (result && result.checkoutUrl) {
           document.getElementById('memberDoneMsg').textContent = 'カードのご登録画面へ移動します…';
           top.location.href = result.checkoutUrl;
