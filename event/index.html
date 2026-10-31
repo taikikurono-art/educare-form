@@ -151,6 +151,7 @@
         <div id="children"></div>
         <button type="button" class="add-child" id="add-child">＋ お子さまを追加</button>
         <p class="note" id="child-note"></p>
+        <div class="field" id="apply-options" style="display:none;margin-top:16px"></div>
         <div class="field" id="adults-field" style="display:none;margin-top:16px">
           <label for="adults">参加する大人の人数<span class="req">必須</span></label>
           <select id="adults"><option value="1">1人</option><option value="2">2人</option><option value="3">3人</option><option value="4">4人</option><option value="5">5人以上</option></select>
@@ -232,7 +233,7 @@ function renderList(list){
     if (e.pill) a.appendChild(el('span', { class:'tag' }, e.pill));
     a.appendChild(el('span', { class:'tag' + (e.state !== 'open' ? ' full' : '') }, e.state === 'open' ? (e.kind || '受付中') : e.state === 'full' ? '満員' : '受付終了'));
     a.appendChild(el('div', { class:'ev-name' }, e.name));
-    a.appendChild(el('div', { class:'ev-meta' }, [e.when, e.where, e.deadline ? '締切：' + e.deadline : '', e.left !== null && e.left !== undefined && e.state === 'open' ? 'のこり ' + e.left + '人' : ''].filter(Boolean).join('\n')));
+    a.appendChild(el('div', { class:'ev-meta' }, [e.when, e.where, e.deadline ? '締切：' + e.deadline : '', e.state === 'open' && e.familiesLeft !== null && e.familiesLeft !== undefined ? 'のこり ' + e.familiesLeft + '家族' : (e.left !== null && e.left !== undefined && e.state === 'open' ? 'のこり ' + e.left + '人' : '')].filter(Boolean).join('\n')));
     box.appendChild(a);
   });
   show('step-list');
@@ -254,7 +255,7 @@ function renderEvent(){
   var info = $('info');
   var when = EV.when || [EV.start, EV.end && EV.end !== EV.start ? EV.end : ''].filter(Boolean).join(' 〜 ');
   [['日時', when], ['場所', EV.where || EV.place], ['宿泊', isStay() ? EV.stay : ''], ['内容', EV.what], ['集合・解散', EV.meet], ['持ち物', EV.bring], ['雨の日', EV.rain],
-   ['締切', EV.deadline], ['定員', EV.capacity ? EV.capacity + '人' + (EV.left !== null ? '（のこり ' + EV.left + '人）' : '') : '']]
+   ['締切', EV.deadline], ['定員', capText()]]
     .forEach(function(kv){ if (!kv[1]) return; var li = el('li'); li.appendChild(el('span', { class:'k' }, kv[0])); li.appendChild(el('span', { class:'v' }, kv[1])); info.appendChild(li); });
 
   document.querySelectorAll('.stay-only').forEach(function(x){ x.style.display = isStay() ? '' : 'none'; });
@@ -274,13 +275,17 @@ function renderEvent(){
     $('category-list').appendChild(label);
   });
   var notes = [];
-  notes.push('お子さま1人あたりの金額です。');
+  var single = EV.prices.length === 1 ? EV.prices[0] : null;
+  if (!single) notes.push('お子さま1人あたりの金額です。');
   if (EV.freeAge >= 0) notes.push(EV.freeAge + '歳以下のお子さまは無料です。');
-  if (EV.sibDisc) notes.push('きょうだいで参加すると、2人目から1人' + yen(EV.sibDisc) + '円引きです。');
+  if (EV.sibDisc && single) notes.push('きょうだいで参加するときは、2人目から1人' + yen(Math.max(0, single.price - EV.sibDisc)) + '円です。');
+  else if (EV.sibDisc) notes.push('きょうだいで参加すると、2人目から1人' + yen(EV.sibDisc) + '円引きです。');
+  if (EV.maxKids) notes.push('お子さまは1家族' + EV.maxKids + '人までです。');
   if (EV.early) notes.push(EV.earlyLabel + 'までのお申込みで、1人' + yen(EV.earlyDisc) + '円引きです（早期割引）。');
   $('cat-note').textContent = notes.join('');
   $('child-note').textContent = isStay() ? '' : (EV.freeAge >= 0 ? EV.freeAge + '歳以下のお子さまも入力してください（無料です）。' : '') + '年齢は当日時点でお願いします。';
   if (EV.askAdults) $('adults-field').style.display = '';
+  buildApplyOptions();
 
   // 申込ごとの質問
   var aq = EV.questions.filter(function(q){ return q.per === 'apply'; });
@@ -295,6 +300,35 @@ function renderEvent(){
   addChild();
   show('step-form');
 }
+
+function capText(){
+  var parts = [];
+  if (EV.capFamilies) parts.push(EV.capFamilies + '家族' + (EV.capacity ? '（お子さま' + EV.capacity + '人）' : '') + 'まで' + (EV.familiesLeft !== null && EV.familiesLeft !== undefined ? '・のこり ' + EV.familiesLeft + '家族' : ''));
+  else if (EV.capacity) parts.push(EV.capacity + '人' + (EV.left !== null ? '（のこり ' + EV.left + '人）' : ''));
+  return parts.join('');
+}
+function childOptions(){ return (EV.options || []).filter(function(o){ return o.per !== 'apply'; }); }
+function applyOptionsList(){ return (EV.options || []).filter(function(o){ return o.per === 'apply'; }); }
+function buildApplyOptions(){
+  var list = applyOptionsList(); if (!list.length) return;
+  var box = $('apply-options'); box.style.display = '';
+  box.appendChild(el('span', { class:'label' }, 'レンタル・オプション')); box.lastChild.appendChild(el('span', { class:'opt' }, '必要な数だけ'));
+  var cl = el('div', { class:'choice-list' });
+  list.forEach(function(o){
+    var l = el('label');
+    var nm = el('span', null, o.name); if (o.note) nm.appendChild(el('span', { class:'sub' }, o.note + (o.left !== null && o.left !== undefined ? '（のこり ' + o.left + '）' : '')));
+    var sel = el('select', { class:'a-opt', 'data-name':o.name, style:'width:auto;min-width:5.5em;margin-left:auto' });
+    var max = o.left === null || o.left === undefined ? 10 : Math.min(10, o.left);
+    for (var i = 0; i <= max; i++) sel.appendChild(el('option', { value:String(i) }, i === 0 ? 'なし' : i + 'つ'));
+    if (max === 0) { sel.disabled = true; nm.appendChild(el('span', { class:'sub' }, '貸し出しは終了しました')); }
+    sel.addEventListener('change', updateTotal);
+    l.appendChild(nm); l.appendChild(sel); l.appendChild(el('span', { class:'price' }, yen(o.price) + '円'));
+    cl.appendChild(l);
+  });
+  box.appendChild(cl);
+}
+function readApplyOptions(){ var o = {}; document.querySelectorAll('.a-opt').forEach(function(s){ var n = +s.value || 0; if (n) o[s.getAttribute('data-name')] = n; }); return o; }
+function maxKids(){ return EV && EV.maxKids ? EV.maxKids : MAX_CHILDREN; }
 
 function questionField(q, prefix){
   var f = el('div', { class:'field' }), id = prefix + '-' + q.key + '-' + Math.random().toString(36).slice(2, 7);
@@ -321,7 +355,7 @@ function readAnswers(root){
 /* ---------- お子さま ---------- */
 function addChild(){
   var box = $('children');
-  if (box.children.length >= MAX_CHILDREN) return;
+  if (box.children.length >= maxKids()) return;
   var c = el('div', { class:'child' });
   var head = el('div', { class:'child-head' }); head.appendChild(el('b', { class:'child-no' }));
   var rm = el('button', { type:'button', class:'remove' }, '× 削除');
@@ -352,10 +386,11 @@ function addChild(){
     var pf = el('div', { class:'field c-plan-field' }); pf.appendChild(el('label', null, 'プラン')); pf.lastChild.appendChild(el('span', { class:'req' }, '必須'));
     var ps = el('select', { class:'c-plan' }); ps.addEventListener('change', updateTotal); pf.appendChild(ps); c.appendChild(pf);
   }
-  if (EV.options.length) {
+  if (childOptions().length) {
     var of = el('div', { class:'field' }); of.appendChild(el('span', { class:'label' }, 'オプション')); of.lastChild.appendChild(el('span', { class:'opt' }, '必要なものだけ'));
     var ol = el('div', { class:'choice-list' });
-    EV.options.forEach(function(o){
+    childOptions().forEach(function(o){
+      if (o.left === 0) return;
       var l = el('label'), cb = el('input', { type:'checkbox', class:'c-opt', value:o.name }); cb.addEventListener('change', updateTotal);
       var nm = el('span', null, o.name); if (o.note) nm.appendChild(el('span', { class:'sub' }, o.note));
       l.appendChild(cb); l.appendChild(nm); l.appendChild(el('span', { class:'price' }, '+' + yen(o.price) + '円')); ol.appendChild(l);
@@ -376,7 +411,7 @@ function addChild(){
   box.appendChild(c);
   renumber(); refreshPlans(); updateTotal();
 }
-function renumber(){ var n = $('children').querySelectorAll('.child'); n.forEach(function(c, i){ c.querySelector('.child-no').textContent = 'お子さま ' + (i + 1); c.querySelector('.remove').style.visibility = n.length > 1 ? '' : 'hidden'; }); $('add-child').style.display = n.length >= MAX_CHILDREN ? 'none' : ''; }
+function renumber(){ var n = $('children').querySelectorAll('.child'); n.forEach(function(c, i){ c.querySelector('.child-no').textContent = 'お子さま ' + (i + 1); c.querySelector('.remove').style.visibility = n.length > 1 ? '' : 'hidden'; }); $('add-child').style.display = n.length >= maxKids() ? 'none' : ''; }
 function refreshPlans(){
   if (!hasPlans()) return;
   var ps = plansFor(selectedCat());
@@ -415,8 +450,10 @@ function calc(){
     if (!isFree && base > 0) { if (paidIdx >= 1 && EV.sibDisc) disc += EV.sibDisc; if (EV.early) disc += EV.earlyDisc; paidIdx++; }
     if (isFree) free++;
     var amt = Math.max(0, base + opt - disc); total += amt;
-    if (c.name || base) lines.push((c.name || 'お子さま') + '：' + (isFree ? '無料' : yen(amt) + '円') + (disc ? '（割引 -' + yen(disc) + '円）' : ''));
+    if (c.name || base) lines.push((c.name || 'お子さま') + '：' + (isFree ? '無料' : yen(amt) + '円'));
   });
+  var ao = readApplyOptions();
+  applyOptionsList().forEach(function(o){ var n = ao[o.name] || 0; if (n) { total += o.price * n; lines.push(o.name + ' × ' + n + '：' + yen(o.price * n) + '円'); } });
   return { total:total, lines:lines, free:free, cat:cat };
 }
 function updateTotal(){
@@ -455,7 +492,7 @@ function collect(){
     category: selectedCat(), children: kids, adults: EV.askAdults ? $('adults').value : '',
     school: school, schoolOther: school === SCHOOL_OTHER ? $('schoolOther').value.trim() : '',
     source: unknown ? $('source').value : '', referrer: (unknown && $('source').value === '友だち・知り合いの紹介') ? $('referrer').value.trim() : '',
-    photo: $('photo').value, memo: $('memo').value.trim(), answers: aq.answers, website: $('website').value
+    photo: $('photo').value, memo: $('memo').value.trim(), answers: aq.answers, applyOptions: readApplyOptions(), website: $('website').value
   };
   if (!p.parentName) return fail('保護者の方のお名前を入力してください。');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) return fail('メールアドレスを確認してください。');
