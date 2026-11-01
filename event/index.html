@@ -267,13 +267,17 @@ function renderEvent(){
     var ps = EV.prices.filter(function(p){ return p.cat === c; }).map(function(p){ return p.price; });
     var min = Math.min.apply(null, ps), max = Math.max.apply(null, ps);
     var label = el('label'), input = el('input', { type:'radio', name:'category', value:c });
-    if (cs.length === 1) input.checked = true;
-    input.addEventListener('change', function(){ refreshPlans(); updateTotal(); });
+    if (EV.catPerChild) { input = el('span', { style:'width:0' }); }
+    if (cs.length === 1 && !EV.catPerChild) input.checked = true;
+    if (!EV.catPerChild) input.addEventListener('change', function(){ refreshPlans(); updateTotal(); });
     var name = el('span', null, c);
     label.appendChild(input); label.appendChild(name);
     label.appendChild(el('span', { class:'price' }, yen(min) + '円' + (max > min ? '〜' : '')));
     $('category-list').appendChild(label);
   });
+  if (EV.catPerChild) {
+    $('cat-card').querySelector('.label').textContent = '区分と料金（お子さまごとに、下でえらびます）';
+  }
   var notes = [];
   var single = EV.prices.length === 1 ? EV.prices[0] : null;
   if (!single) notes.push('お子さま1人あたりの金額です。');
@@ -365,6 +369,14 @@ function addChild(){
 
   var f1 = el('div', { class:'field' }); f1.appendChild(el('label', null, 'お名前')); f1.lastChild.appendChild(el('span', { class:'req' }, '必須'));
   f1.appendChild(el('input', { type:'text', class:'c-name', placeholder:'例：山田 花子' })); c.appendChild(f1);
+  if (EV.catPerChild && cats().length) {
+    var fc = el('div', { class:'field' }); fc.appendChild(el('label', null, '参加費の区分')); fc.lastChild.appendChild(el('span', { class:'req' }, '必須'));
+    var cs2 = el('select', { class:'c-cat' }); cs2.appendChild(el('option', { value:'' }, 'えらんでください'));
+    cats().forEach(function(x){ var pr = EV.prices.filter(function(p){ return p.cat === x; })[0]; cs2.appendChild(el('option', { value:x }, x + (pr ? '（' + yen(pr.price) + '円）' : ''))); });
+    cs2.addEventListener('change', updateTotal); fc.appendChild(cs2);
+    fc.appendChild(el('p', { class:'note' }, 'ごきょうだいでも、会員でないお子さまは「一般」をえらんでください。'));
+    c.appendChild(fc);
+  }
   var f2 = el('div', { class:'field' }); f2.appendChild(el('label', null, 'ふりがな')); f2.lastChild.appendChild(el('span', { class: isStay() ? 'req' : 'opt' }, isStay() ? '必須' : '任意'));
   f2.appendChild(el('input', { type:'text', class:'c-kana', placeholder:'例：やまだ はなこ' })); c.appendChild(f2);
 
@@ -435,7 +447,7 @@ function readChildren(){
     var yn = q('.c-allergy-yn');
     var ans = readAnswers(c);
     out.push({ name:q('.c-name'), kana:q('.c-kana'), age: isStay() ? '' : q('.c-age'), birthday: q('.c-bd'), grade:q('.c-grade'), sex:q('.c-sex'),
-      plan:q('.c-plan'), options:[].map.call(c.querySelectorAll('.c-opt:checked'), function(x){ return x.value; }),
+      cat:q('.c-cat'), plan:q('.c-plan'), options:[].map.call(c.querySelectorAll('.c-opt:checked'), function(x){ return x.value; }),
       allergyYN: yn, allergy: yn === 'あり' ? (q('.c-allergy') || 'あり') : yn, care:q('.c-care'), answers:ans.answers, _missing:ans.missing });
   });
   return out;
@@ -445,7 +457,8 @@ function calc(){
   kids.forEach(function(c){
     var age = isStay() ? ageFromBd(c.birthday) : (c.age === '' ? null : +c.age);
     var isFree = EV.freeAge >= 0 && age !== null && age <= EV.freeAge;
-    var row = EV.prices.filter(function(p){ return p.cat === cat && (p.plan || '') === (c.plan || ''); })[0];
+    var ccat = EV.catPerChild ? c.cat : cat;
+    var row = EV.prices.filter(function(p){ return p.cat === ccat && (p.plan || '') === (c.plan || ''); })[0];
     var base = isFree ? 0 : (row ? row.price : 0), opt = 0, disc = 0;
     c.options.forEach(function(n){ var o = EV.options.filter(function(x){ return x.name === n; })[0]; if (o) opt += o.price; });
     if (!isFree && base > 0) { if (paidIdx >= 1 && EV.sibDisc) disc += EV.sibDisc; if (EV.early) disc += EV.earlyDisc; paidIdx++; }
@@ -502,7 +515,7 @@ function collect(){
     eventId: EV.id, parentName:$('parentName').value.trim(), email:$('email').value.trim(), tel:$('tel').value.trim(),
     zip: isStay() ? $('zip').value.trim() : '', address: isStay() ? $('address').value.trim() : '',
     emgName: isStay() ? $('emgName').value.trim() : '', emgRel: isStay() ? $('emgRel').value.trim() : '', emgTel: isStay() ? $('emgTel').value.trim() : '',
-    category: selectedCat(), children: kids, adults: EV.askAdults ? $('adults').value : '',
+    category: EV.catPerChild ? kids.map(function(k){ return k.cat; }).filter(function(x, i, a){ return x && a.indexOf(x) === i; }).join('・') : selectedCat(), children: kids, adults: EV.askAdults ? $('adults').value : '',
     school: school, schoolOther: school === SCHOOL_OTHER ? $('schoolOther').value.trim() : '',
     source: unknown ? $('source').value : '', referrer: (unknown && $('source').value === '友だち・知り合いの紹介') ? $('referrer').value.trim() : '',
     photo: $('photo').value, memo: $('memo').value.trim(), answers: aq.answers, applyOptions: readApplyOptions(), website: $('website').value
@@ -514,7 +527,7 @@ function collect(){
     if (!p.zip || !p.address) return fail('郵便番号とご住所を入力してください。');
     if (!p.emgName || p.emgTel.replace(/[^0-9]/g, '').length < 10) return fail('緊急連絡先のお名前と電話番号を入力してください。');
   }
-  if (cats().length && !p.category) return fail('参加費の区分をえらんでください。');
+  if (cats().length && !EV.catPerChild && !p.category) return fail('参加費の区分をえらんでください。');
   if (!kids.length) return fail('参加するお子さまを入力してください。');
   for (var i = 0; i < kids.length; i++) {
     var k = kids[i], no = 'お子さま' + (i + 1) + 'の';
@@ -524,6 +537,7 @@ function collect(){
       if (!k.grade || !k.sex || !k.birthday) return fail(no + '学年・性別・生年月日を入力してください。');
       if (!k.allergyYN) return fail(no + '食物アレルギーの有無をえらんでください。');
     } else if (k.age === '') return fail(no + '年齢をえらんでください。');
+    if (EV.catPerChild && cats().length && !k.cat) return fail(no + '参加費の区分をえらんでください。');
     if (hasPlans() && !k.plan) return fail(no + 'プランをえらんでください。');
     if (k._missing) return fail(no + '「' + k._missing + '」を入力してください。');
     delete k._missing; delete k.allergyYN;
