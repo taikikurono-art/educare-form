@@ -457,7 +457,8 @@ function calc(){
   if (EV.freeOnlyPrice && kids.length && free === kids.length) {
     total += EV.freeOnlyPrice; free--;
     var k0 = kids[0];
-    lines = lines.map(function(t, i){ return i === 0 ? (k0.name || 'お子さま') + '：' + yen(EV.freeOnlyPrice) + '円（2歳以下のお子さまだけのご参加）' : t; });
+    var label = (k0.name || 'お子さま') + '：' + yen(EV.freeOnlyPrice) + '円（' + EV.freeAge + '歳以下のお子さまだけのご参加）';
+    if (k0.name) lines[0] = label; else lines.unshift(label);
   }
   var ao = readApplyOptions();
   applyOptionsList().forEach(function(o){ var n = ao[o.name] || 0; if (n) { total += o.price * n; lines.push(o.name + ' × ' + n + '：' + yen(o.price * n) + '円'); } });
