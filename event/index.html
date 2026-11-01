@@ -277,14 +277,15 @@ function renderEvent(){
   var notes = [];
   var single = EV.prices.length === 1 ? EV.prices[0] : null;
   if (!single) notes.push('お子さま1人あたりの金額です。');
-  if (EV.freeAge >= 0) notes.push(EV.freeAge + '歳以下のお子さまは無料です。');
+  if (EV.freeAge >= 0) notes.push(EV.freeAge + '歳以下のお子さまは無料です。' + (EV.freeOnlyPrice ? '（' + EV.freeAge + '歳以下のお子さまだけでご参加の場合は' + yen(EV.freeOnlyPrice) + '円です）' : ''));
+  if (EV.adultPrice) notes.push('保護者の方は1人' + yen(EV.adultPrice) + '円です。');
   if (EV.sibDisc && single) notes.push('きょうだいで参加するときは、2人目から1人' + yen(Math.max(0, single.price - EV.sibDisc)) + '円です。');
   else if (EV.sibDisc) notes.push('きょうだいで参加すると、2人目から1人' + yen(EV.sibDisc) + '円引きです。');
   if (EV.maxKids) notes.push('お子さまは1家族' + EV.maxKids + '人までです。');
   if (EV.early) notes.push(EV.earlyLabel + 'までのお申込みで、1人' + yen(EV.earlyDisc) + '円引きです（早期割引）。');
   $('cat-note').textContent = notes.join('');
   $('child-note').textContent = isStay() ? '' : (EV.freeAge >= 0 ? EV.freeAge + '歳以下のお子さまも入力してください（無料です）。' : '') + '年齢は当日時点でお願いします。';
-  if (EV.askAdults) $('adults-field').style.display = '';
+  if (EV.askAdults) { $('adults-field').style.display = ''; $('adults').addEventListener('change', updateTotal); }
   buildApplyOptions();
 
   // 申込ごとの質問
@@ -452,8 +453,19 @@ function calc(){
     var amt = Math.max(0, base + opt - disc); total += amt;
     if (c.name || base) lines.push((c.name || 'お子さま') + '：' + (isFree ? '無料' : yen(amt) + '円'));
   });
+  // 2歳以下（無料）の子だけで申し込むときは、1人目を設定の料金にする
+  if (EV.freeOnlyPrice && kids.length && free === kids.length) {
+    total += EV.freeOnlyPrice; free--;
+    var k0 = kids[0];
+    lines = lines.map(function(t, i){ return i === 0 ? (k0.name || 'お子さま') + '：' + yen(EV.freeOnlyPrice) + '円（2歳以下のお子さまだけのご参加）' : t; });
+  }
   var ao = readApplyOptions();
   applyOptionsList().forEach(function(o){ var n = ao[o.name] || 0; if (n) { total += o.price * n; lines.push(o.name + ' × ' + n + '：' + yen(o.price * n) + '円'); } });
+  // 保護者の参加費
+  if (EV.adultPrice && EV.askAdults && $('adults')) {
+    var na = +$('adults').value || 0;
+    if (na > 0) { total += EV.adultPrice * na; lines.push('保護者 × ' + na + '：' + yen(EV.adultPrice * na) + '円'); }
+  }
   return { total:total, lines:lines, free:free, cat:cat };
 }
 function updateTotal(){
