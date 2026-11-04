@@ -420,6 +420,13 @@
           <option value="">まず希望プログラムを選んでください</option>
         </select>
       </div>
+      <div class="field" id="e-gakudo-box" style="display:none">
+        <label>ココロネ学童に通っていますか？ *</label>
+        <div class="pay-options">
+          <label><input type="radio" name="e-gakudo" value="yes"> 通っている（月謝 5,500円）</label>
+          <label><input type="radio" name="e-gakudo" value="no"> 通っていない（月謝 6,380円＝5,500円＋880円）</label>
+        </div>
+      </div>
       <div class="field">
         <label for="e-startDate">入会希望日（初回レッスン日） *</label>
         <select id="e-startDateSel" required>
@@ -581,6 +588,13 @@
         <button type="button" id="m-extra-remove" style="margin-top:8px;background:none;border:0;color:#888;text-decoration:underline;font-size:13px;padding:0">追加をやめる</button>
       </div>
       <button type="button" id="m-extra-add" style="width:100%;padding:11px;border:1.5px dashed #9cc7ad;border-radius:10px;background:#f4faf6;color:#2f8f5b;font-weight:700;font-size:14px">＋ もう1つの教室も通っている（体操とダンスなど）</button>
+      <div class="field" id="m-gakudo-box" style="display:none;margin-top:12px">
+        <label>ココロネ学童に通っていますか？ *</label>
+        <div class="pay-options">
+          <label><input type="radio" name="m-gakudo" value="yes"> 通っている（月謝 5,500円）</label>
+          <label><input type="radio" name="m-gakudo" value="no"> 通っていない（月謝 6,380円＝5,500円＋880円）</label>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -712,6 +726,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxw3QIzqUsoYhlh7bp25SpK
 
 function gasCall(fn, args) {
   args = args || [];
+  if (fn === 'submitEnrollment' || fn === 'registerExisting' || fn === 'discountCheck') args = [kokoroneApplyEx_(args[0])].concat(args.slice(1));
   var bust = '&_=' + Date.now();
   if (fn === 'getClasses') {
     return fetch(GAS_URL + '?action=classes' + bust).then(function(r){ return r.json(); });
@@ -884,6 +899,7 @@ window.google = { script: { run: (function(){
 let LIFF_ID = '';
 let lineProfile = null;
 let allClasses = [];
+var EX_CLASS_IDS = {};   // ココロネ「学童以外」（-EX）のクラス。一覧には出さず、学童の質問で切り替える
 const LIFF_ID_DEFAULT = '2011170601-J2uFdF1V';
 
 // 教室一覧は、ページを開いた瞬間から読み込み開始（LINEログインと同時に進める）。失敗したら1回だけやり直す
@@ -892,7 +908,10 @@ window.classesReady = (function load(retry){
     if (!Array.isArray(c)) throw new Error('bad classes');
     return c;
   }).catch(function(e){ return retry > 0 ? load(retry - 1) : []; });
-})(1).then(function(c){ allClasses = c; return c; });
+})(1).then(function(c){
+  allClasses = (c || []).filter(function(x){ if (/-EX$/.test(x.id || '')) { EX_CLASS_IDS[x.id] = 1; return false; } return true; });
+  return allClasses;
+});
 
 // プログラムを選んだ時点で教室一覧がまだ届いていなければ「読み込み中」を出し、届いたら選び直す
 function fillClassSelect(programSelect, classSelect, fmt){
@@ -1624,6 +1643,53 @@ document.addEventListener('DOMContentLoaded', initLiff);
         }
       } catch (err) {}
     });
+  });
+})();
+</script>
+
+<script>
+/* ココロネ：学童に通っていない子は「学童以外」クラス（-EX、月謝+880円）で登録する */
+function kokoroneApplyEx_(p){
+  if (!p) return p;
+  var q = Object.assign({}, p);
+  var form = (q.startDate !== undefined) ? 'e' : 'm';
+  var r = document.querySelector('input[name=' + form + '-gakudo]:checked');
+  q.kokoroneGakudo = r ? r.value : '';
+  if (!r || r.value !== 'no') return q;
+  var ex = function(id){ return (/^JMP-KOKORONE/.test(id || '') && !/-EX$/.test(id) && EX_CLASS_IDS[id + '-EX']) ? id + '-EX' : id; };
+  q.classId = ex(q.classId);
+  if (Array.isArray(q.extraClassIds)) q.extraClassIds = q.extraClassIds.map(ex);
+  if (Array.isArray(q.extraChildren)) q.extraChildren = q.extraChildren.map(function(c){ return Object.assign({}, c, { classId: ex(c.classId) }); });
+  if (q.classLabel && q.classId !== p.classId) q.classLabel += '（学童以外）';
+  return q;
+}
+(function(){
+  function isKoko(id){ return /^JMP-KOKORONE/.test(id || ''); }
+  function val(id){ var el = document.getElementById(id); return el ? el.value : ''; }
+  function shown(id){ var el = document.getElementById(id); return el && el.style.display !== 'none'; }
+  var forms = {
+    e: { form: 'enroll-form', ids: function(){ return [val('e-classId')]; }, watch: ['e-classId'] },
+    m: { form: 'member-form', ids: function(){
+           var a = [val('m-classId')];
+           if (shown('m-extra-box')) a.push(val('m-classId2'));
+           if (shown('m-sib-card')) a.push(val('m-sibClassId'));
+           return a; }, watch: ['m-classId', 'm-classId2', 'm-sibClassId'], clicks: ['m-extra-add', 'm-extra-remove', 'm-sib-add', 'm-sib-remove'] }
+  };
+  Object.keys(forms).forEach(function(pf){
+    var f = forms[pf];
+    function sync(){
+      var box = document.getElementById(pf + '-gakudo-box'); if (!box) return;
+      var on = f.ids().some(isKoko);
+      box.style.display = on ? '' : 'none';
+      box.querySelectorAll('input').forEach(function(r){ r.required = on; if (!on) r.checked = false; });
+    }
+    f.watch.forEach(function(id){ var el = document.getElementById(id); if (el) el.addEventListener('change', sync); });
+    (f.clicks || []).forEach(function(id){ var el = document.getElementById(id); if (el) el.addEventListener('click', function(){ setTimeout(sync, 0); }); });
+    var form = document.getElementById(f.form);
+    if (form) form.addEventListener('submit', function(ev){
+      sync();
+      if (!form.checkValidity()) { ev.preventDefault(); ev.stopImmediatePropagation(); form.reportValidity(); }
+    }, true);
   });
 })();
 </script>
