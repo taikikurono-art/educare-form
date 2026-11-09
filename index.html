@@ -145,6 +145,13 @@
     .back-btn:active{opacity:.6;}
     .kind-btn{flex:1;padding:20px 12px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--card);font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;}
     .kind-btn:active{background:var(--cream);}
+    .et-list{display:flex;flex-direction:column;gap:10px;}
+    .et-btn{display:block;width:100%;text-align:left;padding:14px 14px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--card);color:var(--text);cursor:pointer;font-family:inherit;}
+    .et-btn b{display:block;font-size:15px;margin-bottom:4px;}
+    .et-btn span{display:block;font-size:12.5px;line-height:1.6;color:var(--text-soft);font-weight:400;}
+    .et-btn span b{display:inline;font-size:inherit;margin:0;color:var(--text);}
+    .et-btn:active{background:var(--cream);}
+    .waive-banner{background:var(--cream);border-radius:var(--radius-md);padding:10px 12px;font-size:13px;line-height:1.6;margin-bottom:12px;}
     .pay-options{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
     .pay-options label{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-weight:500;}
     .pay-options input[type=radio]{accent-color:var(--orange);width:16px;height:16px;margin:0;}
@@ -231,6 +238,18 @@
     <div style="display:flex;gap:12px;margin-top:10px;">
       <button type="button" id="btn-trial" class="kind-btn">体験レッスン申込</button>
       <button type="button" id="btn-enroll" class="kind-btn">入会申込</button>
+    </div>
+  </div>
+
+  <!-- ===== 入会の種類（一本化） ===== -->
+  <div id="enroll-type" class="card" style="display:none">
+    <button type="button" class="back-btn" data-back>‹ 選択画面にもどる</button>
+    <p class="card-title">入会のお申込み</p>
+    <p class="gi-lead" style="font-size:13.5px;margin-bottom:12px">あてはまるものを選んでください。</p>
+    <div class="et-list">
+      <button type="button" class="et-btn" id="et-new"><b>はじめて educare の教室に入会する</b><span>入会金 3,000円（初年度のスポーツ保険料を含みます）</span></button>
+      <button type="button" class="et-btn" id="et-family"><b>本人か家族が、すでに educare に通っている</b><span>クスカに通っているお子さまが体操を始める・ごきょうだいが在籍中・ほかの教室に通っている など。<br>この教室を新しく始める場合は、<b>入会金はかかりません</b>。</span></button>
+      <button type="button" class="et-btn" id="et-switch"><b>いま通っている教室の月謝を、新しいお支払い方法に切り替える</b><span>すでに通っている教室の、お支払い方法のご登録です（入会金はかかりません）。</span></button>
     </div>
   </div>
 
@@ -388,6 +407,16 @@
   <form id="enroll-form" style="display:none">
     <button type="button" class="back-btn" data-back>‹ 選択画面にもどる</button>
 
+    <div class="card" id="e-waive-box" style="display:none">
+      <p class="card-title">すでに通っている教室</p>
+      <div class="waive-banner">ご本人かご家族がすでに educare に通っているため、<b>入会金はかかりません</b>。確認のため、通っている方と教室を教えてください（ご本人の場合は「本人」とお書きください）。</div>
+      <div class="field">
+        <label for="e-waiveNote">通っている方のお名前と教室 *</label>
+        <input type="text" id="e-waiveNote" placeholder="例：本人（クスカ）／姉 はなこ（ちとせ体操）">
+      </div>
+      <div class="note">確認できなかった場合は、スタッフからご連絡することがあります。</div>
+    </div>
+
     <div class="card">
       <p class="card-title">保護者様のご連絡先</p>
       <div class="field">
@@ -544,6 +573,7 @@
 
   <!-- ===== 既存会員：お支払い登録 ===== -->
   <form id="member-form" style="display:none">
+    <button type="button" class="back-btn" id="m-back" data-back>‹ 選択画面にもどる</button>
     <div class="card">
       <p class="card-title">すでに会員の方：お支払い方法の登録</p>
       <p class="gi-lead" style="font-size:13.5px;">いつもありがとうございます。月謝のお支払いを新しい仕組みに切り替えるため、一度だけご登録をお願いします。入会金はかかりません。</p>
@@ -1036,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
 <script>
 (function(){
   function showOnly(id, fromHistory){
-    ['kind-select','trial-form','enroll-form','step-enroll-done','member-form','step-member-done','step-result'].forEach(function(x){
+    ['kind-select','enroll-type','trial-form','enroll-form','step-enroll-done','member-form','step-member-done','step-result'].forEach(function(x){
       var el = document.getElementById(x);
       if (el) el.style.setProperty('display', x===id ? 'block' : 'none', 'important');
     });
@@ -1046,9 +1076,9 @@ document.addEventListener('DOMContentLoaded', initLiff);
     }
     window.scrollTo(0, 0);
   }
-  window.addEventListener('popstate', function(){
+  window.addEventListener('popstate', function(ev){
     var loading = document.getElementById('step-loading');
-    if (loading && loading.style.display === 'none') showOnly(getParam('mode') === 'member' ? 'member-form' : 'kind-select', true);
+    if (loading && loading.style.display === 'none') showOnly((ev && ev.state && ev.state.view === 'enroll-type') ? 'enroll-type' : (getParam('mode') === 'member' ? 'member-form' : 'kind-select'), true);
   });
   document.addEventListener('DOMContentLoaded', function(){
     Array.prototype.forEach.call(document.querySelectorAll('[data-back]'), function(b){
@@ -1106,6 +1136,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
     setRadio('e-gender', p.gender); setRadio('e-payMethod', p.payMethod);
     var cs = document.getElementById('e-claimSib');
     if (cs) { cs.checked = !!p.claimName; cs.dispatchEvent(new Event('change')); setVal('e-claimName', p.claimName || ''); setVal('e-claimBirthday', p.claimBirthday || ''); }
+    setWaive(!!p.waiveEntryFee); setVal('e-waiveNote', p.waiveNote || '');
     window.__pendingStartDate = p.startDate || '';
     var prog = document.getElementById('e-program');
     prog.value = p.program || '';
@@ -1221,9 +1252,21 @@ document.addEventListener('DOMContentLoaded', initLiff);
   document.addEventListener('DOMContentLoaded', function(){
     waitForReady();
     document.getElementById('btn-trial').addEventListener('click', function(){ showOnly('trial-form'); });
-    document.getElementById('btn-enroll').addEventListener('click', function(){ showOnly('enroll-form'); loadEnrollClasses(); });
+    document.getElementById('btn-enroll').addEventListener('click', function(){ showOnly('enroll-type'); });
+    document.getElementById('et-new').addEventListener('click', function(){ setWaive(false); showOnly('enroll-form'); loadEnrollClasses(); });
+    document.getElementById('et-family').addEventListener('click', function(){ setWaive(true); showOnly('enroll-form'); loadEnrollClasses(); });
+    document.getElementById('et-switch').addEventListener('click', function(){ showOnly('member-form'); });
+    if (getParam('mode') === 'member') { var mb = document.getElementById('m-back'); if (mb) mb.style.display = 'none'; }
   });
 
+  function setWaive(on){
+    window.__waiveEntry = !!on;
+    var box = document.getElementById('e-waive-box'), note = document.getElementById('e-waiveNote');
+    if (box) box.style.display = on ? '' : 'none';
+    if (note) note.required = !!on;
+    try { updateFeeStartNote(); } catch (e) {}
+  }
+  window.__setWaive = setWaive;
   function loadEnrollClasses(){ /* 教室一覧はページ読み込み時に取得済み（window.classesReady） */ }
   document.getElementById('e-program').addEventListener('change', function(){
     fillClassSelect(this, document.getElementById('e-classId'), function(c){
@@ -1292,7 +1335,15 @@ document.addEventListener('DOMContentLoaded', initLiff);
     var card = ((document.querySelector('input[name=e-payMethod]:checked') || {}).value || '') === 'card';
     var nextMo = ((now.getMonth()+1) % 12) + 1;
     var html;
-    if (diff <= 0) {
+    if (window.__waiveEntry) {
+      if (diff <= 0) {
+        html = '<b>' + (now.getMonth()+1) + '月スタート</b>：入会金はかかりません。お申込み時のお支払いは<b>' + (now.getMonth()+1) + '月分の月謝のみ</b>です（月の途中からでも日割りはありません）。<br>' +
+          (card ? 'お支払いに使ったカードが登録され、' + nextMo + '月からの月謝は<b>毎月1日に自動で引き落とされます</b>。' : nextMo + '月からは、毎月1日にLINEでお支払いをご案内します。');
+      } else {
+        html = '<b>' + mo + '月スタート</b>：入会金はかからないので、<b>今日のお支払いはありません</b>。<br>' +
+          (card ? 'この後の画面でカードをご登録いただくと、月謝は<b>' + mo + '月1日から毎月1日に自動で引き落とされます</b>。' : '月謝は' + mo + '月1日から、毎月1日にLINEでお支払いをご案内します。');
+      }
+    } else if (diff <= 0) {
       html = '<b>' + (now.getMonth()+1) + '月スタート</b>：入会時のお支払いは<b>入会金＋' + (now.getMonth()+1) + '月分の月謝</b>です（月の途中からでも日割りはありません）。<br>' +
         (card ? 'お支払いに使ったカードが登録され、' + nextMo + '月からの月謝は<b>毎月1日に自動で引き落とされます</b>（入会と同時に予約されるので、毎月のお手続きは不要です）。' : nextMo + '月からは、毎月1日にLINEでお支払いをご案内します。');
     } else {
@@ -1465,6 +1516,8 @@ document.addEventListener('DOMContentLoaded', initLiff);
         claimName: document.getElementById('e-claimSib').checked ? document.getElementById('e-claimName').value.trim() : '',
         claimBirthday: document.getElementById('e-claimSib').checked ? document.getElementById('e-claimBirthday').value : '',
         replaceMemberId: window.__replaceMemberId || '',
+        waiveEntryFee: !!window.__waiveEntry,
+        waiveNote: window.__waiveEntry ? (document.getElementById('e-waiveNote').value || '').trim() : '',
         lineUserId: lp ? lp.userId : '',
         lineName: lp ? lp.displayName : ''
       };
@@ -1493,7 +1546,11 @@ document.addEventListener('DOMContentLoaded', initLiff);
             function(){ document.getElementById('enroll-summary').style.display = 'none'; document.getElementById('enroll-prep').style.display = ''; window.__editFromSummary(payload, result.memberId); });
           return;
         }
-        if (false) {
+        if (result && result.ok && result.message) {
+          var pp0_ = document.getElementById('enroll-prep'); if (pp0_) pp0_.style.display = 'none';
+          window.__replaceMemberId = '';
+          try { localStorage.removeItem('educare_enroll_draft'); } catch (e) {}
+          document.getElementById('enrollDoneMsg').textContent = result.message;
         } else if (result && result.checkoutError) {
           document.getElementById('enrollDoneMsg').textContent = 'お申込みは受け付けました。お支払い画面をご用意できなかったため、お支払い方法については担当より改めてご連絡いたします。';
         } else {
