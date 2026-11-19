@@ -680,7 +680,14 @@
         <label><input type="radio" name="m-payMethod" value="card" required> クレジットカード（自動引き落とし）</label>
         <label><input type="radio" name="m-payMethod" value="bank_transfer"> 銀行振込（毎月LINEでご案内）</label>
       </div>
-      <div class="note">カードを選んだ場合、この後の画面でカードをご登録いただきます（本日のお支払いはありません）。月謝の引き落としが始まる月は、カード登録画面に表示されます。それまではこれまで通りのお支払いです。</div>
+      <div class="note" id="m-payNote">カードを選んだ場合、この後の画面でカードをご登録いただきます（本日のお支払いはありません）。月謝の引き落としが始まる月は、カード登録画面に表示されます。それまではこれまで通りのお支払いです。</div>
+      <div class="field" id="m-paidNow-box" style="display:none;margin-top:12px">
+        <label id="m-paidNow-label">今月分の会費を、PayPalですでにお支払いですか？ *</label>
+        <div class="pay-options">
+          <label><input type="radio" name="m-paidNow" value="no"> まだ払っていない（このご登録と一緒に払う）</label>
+          <label><input type="radio" name="m-paidNow" value="yes"> PayPalで払った</label>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -1416,8 +1423,31 @@ document.addEventListener('DOMContentLoaded', initLiff);
     document.getElementById('m-sib-card').style.display = 'none';
     document.getElementById('m-sib-add').style.display = ''; setSibRequired(false);
   });
+  (function(){
+    var PAY_NOW_FROM = 2026 * 12 + 12;   // 2026年12月から
+    var d = new Date(), ym = d.getFullYear() * 12 + (d.getMonth() + 1);
+    if (ym < PAY_NOW_FROM) return;
+    var mo = d.getMonth() + 1, nx = (mo % 12) + 1;
+    window.__payNowActive = true;
+    var box = document.getElementById('m-paidNow-box'); if (box) box.style.display = '';
+    var lb = document.getElementById('m-paidNow-label'); if (lb) lb.textContent = mo + '月分の会費を、PayPalですでにお支払いですか？ *';
+    function upd(){
+      var paid = ((document.querySelector('input[name=m-paidNow]:checked') || {}).value || '') === 'yes';
+      var card = ((document.querySelector('input[name=m-payMethod]:checked') || {}).value || '') === 'card';
+      var n = document.getElementById('m-payNote'); if (!n) return;
+      if (paid) n.textContent = '本日のお支払いはありません。月謝は' + nx + '月分から、' + (card ? 'ご登録のカードで毎月1日に自動で引き落とされます。' : '毎月1日にLINEでお支払いをご案内します。');
+      else n.textContent = 'ご登録と同時に、' + mo + '月分の月謝をお支払いいただきます。' + (card ? 'この後の画面で、' + mo + '月分のお支払いとカードのご登録を一度に行います。' + nx + '月分からは、そのカードで毎月1日に自動で引き落とされます。' : 'ご登録のあと、' + mo + '月分のお振込のご案内ページに進みます。' + nx + '月分からは、毎月1日にLINEでお支払いをご案内します。');
+    }
+    document.querySelectorAll('input[name=m-paidNow], input[name=m-payMethod]').forEach(function(r){ r.addEventListener('change', upd); });
+    upd();
+  })();
   document.getElementById('member-form').addEventListener('submit', function(e){
     e.preventDefault();
+    if (window.__payNowActive && !document.querySelector('input[name=m-paidNow]:checked')) {
+      var pb = document.getElementById('m-paidNow-box'); if (pb) pb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('今月分の会費をPayPalでお支払い済みかどうかを選んでください。');
+      return;
+    }
     var lp = null;
     function go(){
       var payload = {
@@ -1434,6 +1464,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
         childKana: document.getElementById('m-childKana').value,
         grade: document.getElementById('m-grade').value,
         payMethod: (document.querySelector('input[name=m-payMethod]:checked') || {}).value || '',
+        paidThisMonth: window.__payNowActive ? (((document.querySelector('input[name=m-paidNow]:checked') || {}).value || '') === 'yes' ? 'yes' : 'no') : '',
         hasSibling: false,
         hasMultiClass: false,
         claimName: document.getElementById('m-claimSib').checked ? document.getElementById('m-claimName').value.trim() : '',
@@ -1460,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', initLiff);
         var sSel = document.getElementById('m-sibClassId');
         if (payload.extraChildren && payload.extraChildren.length && sSel && sSel.options[sSel.selectedIndex]) mLabel += '\nごきょうだい：' + payload.extraChildren[0].childName + ' ' + sSel.options[sSel.selectedIndex].textContent.trim();
         if (result && result.checkoutUrl) {
-          document.getElementById('memberDoneMsg').textContent = 'カードのご登録画面へ移動します…';
+          document.getElementById('memberDoneMsg').textContent = (payload.payMethod === 'bank_transfer') ? '今月分のお振込のご案内ページへ移動します…' : (window.__payNowActive && payload.paidThisMonth === 'no' ? '今月分のお支払いとカードのご登録画面へ移動します…' : 'カードのご登録画面へ移動します…');
           top.location.href = result.checkoutUrl;
           return;
         }
